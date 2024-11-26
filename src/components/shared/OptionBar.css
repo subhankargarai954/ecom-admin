@@ -1,0 +1,30 @@
+.optionbar {
+    font-size: large;
+    width: max-content;
+    margin-top: 15px;
+    margin-bottom: 20px;
+    border-radius: 20px;
+
+    /* background-color: rgb(49, 49, 49); */
+}
+.optionbar > .optionbar-navlink:hover {
+    color: rgb(24, 24, 24);
+    background-color: #cccccc;
+}
+
+.optionbar-navlink {
+    text-decoration: none;
+    padding: 5px 15px;
+    font-weight: 500;
+    border: 1px solid rgb(138, 138, 138);
+    border-radius: 20px;
+    color: rgb(199, 199, 199);
+    margin-left: 10px;
+    margin-right: 10px;
+
+    background-color: rgb(49, 49, 49);
+}
+.optionbar-navlink:hover {
+    color: rgb(49, 49, 49);
+    background-color: rgb(199, 199, 199);
+}
