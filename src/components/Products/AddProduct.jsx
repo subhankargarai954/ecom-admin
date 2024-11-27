@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+
 import "./AddProduct.css";
-import { ADMIN_API_PRODUCTS } from "../../CONFIDENTIAL/Confidential";
 
 function AddProduct() {
+    const ADMIN_API_PRODUCTS = process.env.REACT_APP_ADMIN_API_PRODUCTS;
+
     const [productName, setProductName] = useState("");
     const [productImage, setProductImage] = useState("");
     const [productPrice, setProductPrice] = useState("");

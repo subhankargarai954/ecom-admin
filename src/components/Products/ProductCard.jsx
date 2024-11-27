@@ -5,10 +5,11 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import "./ProductCard.css";
-import { ADMIN_API_PRODUCTS } from "../../CONFIDENTIAL/Confidential";
 
 export default function ProductCard({ product }) {
     const navigate = useNavigate();
+
+    const ADMIN_API_PRODUCTS = process.env.REACT_APP_ADMIN_API_PRODUCTS;
     // const product = product;
 
     // const [mount, setMount] = useState(0);

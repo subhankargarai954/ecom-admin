@@ -3,12 +3,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-import "./AllProducts.css";
-
-import { ADMIN_API_PRODUCTS } from "../../CONFIDENTIAL/Confidential";
 import ProductCard from "./ProductCard";
 
+import "./AllProducts.css";
+
 function AllProducts() {
+    const ADMIN_API_PRODUCTS = process.env.REACT_APP_ADMIN_API_PRODUCTS;
+
     const [allProducts, setAllProducts] = useState([]);
 
     useEffect(() => {

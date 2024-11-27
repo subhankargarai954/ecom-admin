@@ -4,13 +4,12 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-import { ADMIN_API_PRODUCTS } from "../../CONFIDENTIAL/Confidential";
-
 import "./UpdateProduct.css";
 
 function UpdateProduct() {
     const navigate = useNavigate();
     const location = useLocation();
+    const ADMIN_API_PRODUCTS = process.env.REACT_APP_ADMIN_API_PRODUCTS;
 
     const [productName, setProductName] = useState("");
     const [productImage, setProductImage] = useState("");
@@ -131,7 +130,7 @@ function UpdateProduct() {
         setOtherImages([...otherImages, ""]);
     };
     const removeImageField = (index) => {
-        setOtherImages(otherImages.filter((item, i) => i != index));
+        setOtherImages(otherImages.filter((item, i) => i !== index));
     };
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -227,6 +226,7 @@ function UpdateProduct() {
                                 const cName = categories.find((category) => {
                                     if (category.id === e.target.value)
                                         return category.name;
+                                    else return null;
                                 });
                                 setProductCategoryName(cName);
                             }}
