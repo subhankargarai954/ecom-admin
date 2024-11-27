@@ -14,11 +14,11 @@ function AllProducts() {
 
     useEffect(() => {
         const getProducts = async () => {
-            // console.log(`____________`);
+            console.log(`____________ ${ADMIN_API_PRODUCTS}`);
             try {
                 const response = await axios.get(`${ADMIN_API_PRODUCTS}`);
                 let products = response.data.products;
-                // products && console.dir(products, { depth: null });
+                products && console.dir(products, { depth: null });
 
                 // integrate categoryName to product object
                 try {
@@ -38,7 +38,6 @@ function AllProducts() {
                 } catch (error) {
                     console.log(`2 getProducts: ${error}`);
                 }
-
                 // products && console.dir(products, { depth: null });
 
                 // integrate secondary images of products to product object
