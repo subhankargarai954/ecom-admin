@@ -1,38 +1,25 @@
 // ProductCard.jsx
 
-import React, { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 
 import "./ProductCard.css";
 
-export default function ProductCard({ product }) {
-    const navigate = useNavigate();
+export default function ProductCard({ product, onDelete }) {
 
     const ADMIN_API_PRODUCTS = process.env.REACT_APP_ADMIN_API_PRODUCTS;
-    // const product = product;
-
-    // const [mount, setMount] = useState(0);
-
-    useEffect(() => {
-        // console.dir(product, { depth: null });
-    }, []);
 
     const deleteProduct = async (product) => {
         try {
             const response = await axios.delete(
                 `${ADMIN_API_PRODUCTS}/${product.id}`
             );
-            console.dir(response.data, { depth: null });
-
-            if (response.data) {
-                navigate("/");
-                setTimeout(() => {
-                    navigate("/Products");
-                }, 10);
+            if (response.data && onDelete) {
+                onDelete(product.id);
             }
         } catch (error) {
-            console.log(error);
+            console.error(`deleteProduct error: ${error.message}`);
         }
     };
 

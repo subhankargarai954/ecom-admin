@@ -219,40 +219,29 @@ function UpdateProduct() {
                     <div className="updateProduct-form-item-input">
                         <select
                             className="updateProduct-form-item-input-select"
-                            value={productCategoryName}
+                            value={productCategoryId}
                             onChange={(e) => {
-                                console.log(e.target.value);
-                                setProductCategoryId(e.target.value);
-                                const cName = categories.find((category) => {
-                                    if (category.id === e.target.value)
-                                        return category.name;
-                                    else return null;
-                                });
-                                setProductCategoryName(cName);
+                                const selectedId = parseInt(e.target.value, 10);
+                                setProductCategoryId(selectedId);
+                                const found = categories.find(
+                                    (c) => c.id === selectedId
+                                );
+                                setProductCategoryName(found ? found.name : "");
                             }}
                         >
-                            <option
-                                // id="disabled-option"
-                                className="updateProduct-select-option"
-                                value={productCategoryId}
-                            >
-                                {productCategoryName}
-                            </option>
-                            {/* <option id="disabled-option" value="">
+                            <option value="" disabled>
                                 Select a category
-                            </option> */}
+                            </option>
                             {categories &&
-                                categories.map((category, index) => {
-                                    return (
-                                        <option
-                                            key={index}
-                                            className="updateProduct-select-option"
-                                            value={category.id}
-                                        >
-                                            {category.name}
-                                        </option>
-                                    );
-                                })}
+                                categories.map((category, index) => (
+                                    <option
+                                        key={index}
+                                        className="updateProduct-select-option"
+                                        value={category.id}
+                                    >
+                                        {category.name}
+                                    </option>
+                                ))}
                         </select>
                     </div>
                 </div>

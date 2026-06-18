@@ -72,9 +72,17 @@ function AllProducts() {
         <div className="allproducts">
             <div className="allproducts-product">
                 {allProducts &&
-                    allProducts.map((product, index) => {
-                        return <ProductCard key={index} product={product} />;
-                    })}
+                    allProducts.map((product, index) => (
+                        <ProductCard
+                            key={product.id ?? index}
+                            product={product}
+                            onDelete={(id) =>
+                                setAllProducts((prev) =>
+                                    prev.filter((p) => p.id !== id)
+                                )
+                            }
+                        />
+                    ))}
             </div>
         </div>
     );
