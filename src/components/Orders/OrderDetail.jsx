@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import api from "../../api";
 
 const STEPS = ["pending", "confirmed", "ready_for_pickup", "delivered"];
 
 export default function OrderDetail() {
+    const { t } = useTranslation();
     const { id } = useParams();
     const navigate = useNavigate();
     const [order, setOrder] = useState(null);
@@ -33,6 +35,7 @@ export default function OrderDetail() {
         finally { setLoading(false); }
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { fetchOrder(); }, [id]);
 
     const doAction = async (fn) => {
@@ -44,32 +47,32 @@ export default function OrderDetail() {
 
     const handleConfirm = () => doAction(async () => {
         await api.put(`/admin/api/orders/${id}/confirm`, confirmForm);
-        setSuccess("Order confirmed."); setShowConfirmModal(false);
+        setSuccess("✓"); setShowConfirmModal(false);
     });
 
     const handleSetDeliveryDate = () => doAction(async () => {
         await api.put(`/admin/api/orders/${id}/delivery-date`, { final_delivery_date: deliveryDate });
-        setSuccess("Final delivery date set."); setShowDeliveryDateModal(false);
+        setSuccess("✓"); setShowDeliveryDateModal(false);
     });
 
     const handleDeliver = () => doAction(async () => {
         const { data } = await api.put(`/admin/api/orders/${id}/deliver`, deliverForm);
-        setSuccess(`Delivery recorded. ${data.pending_amount > 0 ? `Pending due: ₹${data.pending_amount}` : "Fully paid."}`);
+        setSuccess(`✓ ${data.pending_amount > 0 ? `₹${data.pending_amount}` : ""}`.trim());
         setShowDeliverModal(false);
     });
 
     const handleCancel = () => doAction(async () => {
         await api.put(`/admin/api/orders/${id}/cancel`, { cancellation_reason: cancelReason });
-        setSuccess("Order cancelled."); setShowCancelModal(false);
+        setSuccess("✓"); setShowCancelModal(false);
     });
 
     const handleMarkRefund = () => doAction(async () => {
         await api.put(`/admin/api/orders/${id}/refund`);
-        setSuccess("Refund marked as issued.");
+        setSuccess("✓");
     });
 
-    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>Loading…</div>;
-    if (!order) return <div className="alert alert-error">Order not found.</div>;
+    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>{t("order_detail.loading")}</div>;
+    if (!order) return <div className="alert alert-error">{t("order_detail.not_found")}</div>;
 
     const stepIdx = STEPS.indexOf(order.order_status);
     const pending_amount = Math.max(0,
@@ -79,8 +82,8 @@ export default function OrderDetail() {
     return (
         <div>
             <div className="topbar">
-                <h1>Order #{order.id}</h1>
-                <button className="btn btn-outline" onClick={() => navigate("/orders")}>← Back to Orders</button>
+                <h1>{t("order_detail.title")} #{order.id}</h1>
+                <button className="btn btn-outline" onClick={() => navigate("/orders")}>← {t("order_detail.back")}</button>
             </div>
 
             {error && <div className="alert alert-error">{error}</div>}
@@ -93,7 +96,7 @@ export default function OrderDetail() {
                         {STEPS.map((s, i) => (
                             <div key={s} className={`timeline-step ${i < stepIdx ? "done" : i === stepIdx ? "active" : ""}`}>
                                 <div className="timeline-dot">{i < stepIdx ? "✓" : i + 1}</div>
-                                <div className="timeline-label">{s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</div>
+                                <div className="timeline-label">{t(`order_status.${s}`)}</div>
                             </div>
                         ))}
                     </div>
@@ -102,14 +105,14 @@ export default function OrderDetail() {
 
             {order.order_status === "cancelled" && (
                 <div className="alert alert-error">
-                    <strong>Cancelled</strong>{order.cancellation_reason ? ` — ${order.cancellation_reason}` : ""}
+                    <strong>{t("order_detail.cancelled_label")}</strong>{order.cancellation_reason ? ` — ${order.cancellation_reason}` : ""}
                 </div>
             )}
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                 {/* Customer Info */}
                 <div className="card">
-                    <div className="card-header"><h2>Customer</h2></div>
+                    <div className="card-header"><h2>{t("order_detail.customer")}</h2></div>
                     <p><strong>{order.user?.name}</strong></p>
                     <p style={{ color: "#636e72", fontSize: 13 }}>📞 {order.user?.phone}</p>
                     {order.user?.email && <p style={{ color: "#636e72", fontSize: 13 }}>✉️ {order.user.email}</p>}
@@ -118,16 +121,16 @@ export default function OrderDetail() {
 
                 {/* Payment Info */}
                 <div className="card">
-                    <div className="card-header"><h2>Payment</h2></div>
+                    <div className="card-header"><h2>{t("order_detail.payment")}</h2></div>
                     <table style={{ width: "100%", fontSize: 13 }}>
                         <tbody>
-                            <tr><td style={{ padding: "4px 0", color: "#636e72" }}>Order Total</td><td style={{ textAlign: "right", fontWeight: 600 }}>₹{parseFloat(order.total_amount).toFixed(2)}</td></tr>
-                            <tr><td style={{ padding: "4px 0", color: "#636e72" }}>Advance Paid ({order.advance_payment_mode})</td><td style={{ textAlign: "right", color: "#00b894", fontWeight: 600 }}>₹{parseFloat(order.advance_paid).toFixed(2)}</td></tr>
+                            <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.order_total")}</td><td style={{ textAlign: "right", fontWeight: 600 }}>₹{parseFloat(order.total_amount).toFixed(2)}</td></tr>
+                            <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.advance_paid")} ({order.advance_payment_mode})</td><td style={{ textAlign: "right", color: "#00b894", fontWeight: 600 }}>₹{parseFloat(order.advance_paid).toFixed(2)}</td></tr>
                             {parseFloat(order.final_paid) > 0 && (
-                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>Final Paid ({order.final_payment_mode})</td><td style={{ textAlign: "right", color: "#00b894", fontWeight: 600 }}>₹{parseFloat(order.final_paid).toFixed(2)}</td></tr>
+                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.final_paid")} ({order.final_payment_mode})</td><td style={{ textAlign: "right", color: "#00b894", fontWeight: 600 }}>₹{parseFloat(order.final_paid).toFixed(2)}</td></tr>
                             )}
                             <tr style={{ borderTop: "1px solid #dfe6e9" }}>
-                                <td style={{ padding: "8px 0 4px", fontWeight: 700 }}>Pending Due</td>
+                                <td style={{ padding: "8px 0 4px", fontWeight: 700 }}>{t("order_detail.pending_due")}</td>
                                 <td style={{ textAlign: "right", fontWeight: 700, color: parseFloat(pending_amount) > 0 ? "#d63031" : "#00b894" }}>
                                     ₹{pending_amount}
                                 </td>
@@ -135,27 +138,27 @@ export default function OrderDetail() {
                         </tbody>
                     </table>
                     <div style={{ marginTop: 8 }}>
-                        <PayBadge status={order.payment_status} />
+                        <span className={`badge ${PAY_BADGE[order.payment_status] || ""}`}>{t(`payment_status.${order.payment_status}`)}</span>
                     </div>
                 </div>
 
                 {/* Delivery Info */}
                 <div className="card">
-                    <div className="card-header"><h2>Delivery</h2></div>
+                    <div className="card-header"><h2>{t("order_detail.delivery")}</h2></div>
                     <table style={{ width: "100%", fontSize: 13 }}>
                         <tbody>
-                            <tr><td style={{ padding: "4px 0", color: "#636e72" }}>All Items Available?</td>
-                                <td style={{ textAlign: "right" }}><span className={`badge ${order.all_items_available ? "badge-ready" : "badge-warning"}`}>{order.all_items_available ? "Yes" : "No (Pre-order)"}</span></td></tr>
+                            <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.all_available")}</td>
+                                <td style={{ textAlign: "right" }}><span className={`badge ${order.all_items_available ? "badge-ready" : "badge-warning"}`}>{order.all_items_available ? t("order_detail.yes") : t("order_detail.no_preorder")}</span></td></tr>
                             {order.tentative_delivery_date && (
-                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>Tentative Date</td>
+                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.tentative_date")}</td>
                                     <td style={{ textAlign: "right", color: "#e17055" }}>~{fmt(order.tentative_delivery_date)}</td></tr>
                             )}
                             {order.final_delivery_date && (
-                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>Final Delivery Date</td>
+                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.final_delivery_date")}</td>
                                     <td style={{ textAlign: "right", color: "#00b894", fontWeight: 700 }}>{fmt(order.final_delivery_date)}</td></tr>
                             )}
                             {order.actual_delivery_date && (
-                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>Actually Collected On</td>
+                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.collected_on")}</td>
                                     <td style={{ textAlign: "right", fontWeight: 600 }}>{new Date(order.actual_delivery_date).toLocaleString("en-IN")}</td></tr>
                             )}
                         </tbody>
@@ -164,35 +167,32 @@ export default function OrderDetail() {
 
                 {/* Actions */}
                 <div className="card">
-                    <div className="card-header"><h2>Actions</h2></div>
+                    <div className="card-header"><h2>{t("order_detail.actions")}</h2></div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                         {order.order_status === "pending" && !order.all_items_available && (
                             <button className="btn btn-primary" onClick={() => setShowConfirmModal(true)}>
-                                ✅ Confirm Pre-order & Set Tentative Date
+                                ✅ {t("order_detail.confirm_preorder")}
                             </button>
                         )}
                         {["pending", "confirmed"].includes(order.order_status) && (
                             <button className="btn btn-success" onClick={() => setShowDeliveryDateModal(true)}>
-                                📅 Set Final Delivery Date
+                                📅 {t("order_detail.set_final_date")}
                             </button>
                         )}
                         {order.order_status === "ready_for_pickup" && (
                             <button className="btn btn-primary" onClick={() => setShowDeliverModal(true)}>
-                                🎉 Mark as Delivered (Customer Collected)
+                                🎉 {t("order_detail.mark_delivered")}
                             </button>
                         )}
                         {order.order_status === "cancelled" && order.payment_status !== "refunded" && (
                             <button className="btn btn-secondary" onClick={handleMarkRefund}>
-                                💵 Mark Refund as Issued
+                                💵 {t("order_detail.mark_refund")}
                             </button>
                         )}
                         {!["delivered", "cancelled"].includes(order.order_status) && (
                             <button className="btn btn-danger" onClick={() => setShowCancelModal(true)}>
-                                ✕ Cancel Order
+                                ✕ {t("order_detail.cancel_order")}
                             </button>
-                        )}
-                        {!order.order_status && (
-                            <p style={{ color: "#636e72", fontSize: 13 }}>No actions available.</p>
                         )}
                     </div>
                 </div>
@@ -200,18 +200,18 @@ export default function OrderDetail() {
 
             {/* Order Items */}
             <div className="card" style={{ marginTop: 8 }}>
-                <div className="card-header"><h2>Order Items</h2></div>
+                <div className="card-header"><h2>{t("order_detail.items")}</h2></div>
                 <div className="table-wrapper">
                     <table>
                         <thead>
                             <tr>
-                                <th>Product</th>
-                                <th>Variant</th>
-                                <th>Unit Price</th>
-                                <th>Discount</th>
-                                <th>Qty</th>
-                                <th>Subtotal</th>
-                                <th>In Stock?</th>
+                                <th>{t("order_detail.col_product")}</th>
+                                <th>{t("order_detail.col_variant")}</th>
+                                <th>{t("order_detail.col_unit_price")}</th>
+                                <th>{t("order_detail.col_discount")}</th>
+                                <th>{t("order_detail.col_qty")}</th>
+                                <th>{t("order_detail.col_subtotal")}</th>
+                                <th>{t("order_detail.col_in_stock")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -228,7 +228,7 @@ export default function OrderDetail() {
                                         <td><strong>₹{subtotal.toFixed(2)}</strong></td>
                                         <td>
                                             <span className={`badge ${item.was_available_at_order ? "badge-ready" : "badge-pending"}`}>
-                                                {item.was_available_at_order ? "In Stock" : "Pre-order"}
+                                                {item.was_available_at_order ? t("order_detail.in_stock") : t("order_detail.preorder")}
                                             </span>
                                         </td>
                                     </tr>
@@ -241,86 +241,88 @@ export default function OrderDetail() {
 
             {/* Modals */}
             {showConfirmModal && (
-                <Modal title="Confirm Pre-order" onClose={() => setShowConfirmModal(false)}>
+                <Modal title={t("order_detail.modal_confirm_title")} onClose={() => setShowConfirmModal(false)}>
                     <div className="form-group" style={{ marginBottom: 12 }}>
-                        <label>Tentative Delivery Date</label>
+                        <label>{t("order_detail.modal_tentative_label")}</label>
                         <input type="date" value={confirmForm.tentative_delivery_date}
                             onChange={(e) => setConfirmForm({ ...confirmForm, tentative_delivery_date: e.target.value })} />
                     </div>
                     <div className="form-group" style={{ marginBottom: 16 }}>
-                        <label>Admin Notes (visible to staff)</label>
+                        <label>{t("order_detail.modal_admin_notes")}</label>
                         <textarea value={confirmForm.admin_notes}
                             onChange={(e) => setConfirmForm({ ...confirmForm, admin_notes: e.target.value })}
-                            placeholder="e.g. Stock arriving Thursday…" rows={2} />
+                            placeholder={t("order_detail.modal_admin_notes_placeholder")} rows={2} />
                     </div>
                     <div className="modal-actions">
-                        <button className="btn btn-outline" onClick={() => setShowConfirmModal(false)}>Cancel</button>
-                        <button className="btn btn-primary" onClick={handleConfirm} disabled={actionLoading}>Confirm Order</button>
+                        <button className="btn btn-outline" onClick={() => setShowConfirmModal(false)}>{t("order_detail.modal_cancel")}</button>
+                        <button className="btn btn-primary" onClick={handleConfirm} disabled={actionLoading}>{t("order_detail.modal_confirm_btn")}</button>
                     </div>
                 </Modal>
             )}
 
             {showDeliveryDateModal && (
-                <Modal title="Set Final Delivery Date" onClose={() => setShowDeliveryDateModal(false)}>
+                <Modal title={t("order_detail.modal_final_title")} onClose={() => setShowDeliveryDateModal(false)}>
                     <div className="form-group" style={{ marginBottom: 16 }}>
-                        <label>Final Delivery Date *</label>
+                        <label>{t("order_detail.modal_final_label")} *</label>
                         <input type="date" value={deliveryDate}
                             onChange={(e) => setDeliveryDate(e.target.value)} required />
                     </div>
                     <p style={{ fontSize: 12, color: "#636e72" }}>
-                        Setting this marks the order as <strong>Ready for Pickup</strong>. The customer can come to collect on or after this date.
+                        {t("order_detail.modal_final_note")}
                     </p>
                     <div className="modal-actions">
-                        <button className="btn btn-outline" onClick={() => setShowDeliveryDateModal(false)}>Cancel</button>
-                        <button className="btn btn-success" onClick={handleSetDeliveryDate} disabled={actionLoading || !deliveryDate}>Confirm Date</button>
+                        <button className="btn btn-outline" onClick={() => setShowDeliveryDateModal(false)}>{t("order_detail.modal_cancel")}</button>
+                        <button className="btn btn-success" onClick={handleSetDeliveryDate} disabled={actionLoading || !deliveryDate}>{t("order_detail.modal_confirm_date")}</button>
                     </div>
                 </Modal>
             )}
 
             {showDeliverModal && (
-                <Modal title="Record Delivery & Final Payment" onClose={() => setShowDeliverModal(false)}>
+                <Modal title={t("order_detail.modal_deliver_title")} onClose={() => setShowDeliverModal(false)}>
                     <div className="alert alert-info">
-                        <strong>Total: ₹{parseFloat(order.total_amount).toFixed(2)}</strong> |
-                        Advance Paid: ₹{parseFloat(order.advance_paid).toFixed(2)} |
-                        Balance Due: ₹{pending_amount}
+                        {t("order_detail.modal_deliver_summary", {
+                            total: `₹${parseFloat(order.total_amount).toFixed(2)}`,
+                            advance: `₹${parseFloat(order.advance_paid).toFixed(2)}`,
+                            due: `₹${pending_amount}`,
+                        })}
                     </div>
                     <div className="form-group" style={{ marginBottom: 12 }}>
-                        <label>Final Payment Received (₹)</label>
+                        <label>{t("order_detail.modal_final_received")}</label>
                         <input type="number" step="0.01" min="0"
                             value={deliverForm.final_paid}
                             onChange={(e) => setDeliverForm({ ...deliverForm, final_paid: e.target.value })}
-                            placeholder={`Max ${pending_amount}`} />
+                            placeholder={t("order_detail.modal_max", { amount: pending_amount })} />
                     </div>
                     <div className="form-group" style={{ marginBottom: 16 }}>
-                        <label>Payment Mode</label>
+                        <label>{t("order_detail.modal_payment_mode")}</label>
                         <select value={deliverForm.final_payment_mode}
                             onChange={(e) => setDeliverForm({ ...deliverForm, final_payment_mode: e.target.value })}>
-                            <option value="cash">Cash</option>
-                            <option value="online">Online</option>
-                            <option value="mixed">Mixed (Cash + Online)</option>
+                            <option value="cash">{t("order_detail.cash")}</option>
+                            <option value="online">{t("order_detail.online")}</option>
+                            <option value="mixed">{t("order_detail.mixed")}</option>
                         </select>
                     </div>
                     <p style={{ fontSize: 12, color: "#636e72" }}>
-                        If the amount collected is less than the balance due, the difference will be recorded as a pending due.
+                        {t("order_detail.modal_deliver_note")}
                     </p>
                     <div className="modal-actions">
-                        <button className="btn btn-outline" onClick={() => setShowDeliverModal(false)}>Cancel</button>
-                        <button className="btn btn-primary" onClick={handleDeliver} disabled={actionLoading}>Mark as Delivered</button>
+                        <button className="btn btn-outline" onClick={() => setShowDeliverModal(false)}>{t("order_detail.modal_cancel")}</button>
+                        <button className="btn btn-primary" onClick={handleDeliver} disabled={actionLoading}>{t("order_detail.modal_deliver_btn")}</button>
                     </div>
                 </Modal>
             )}
 
             {showCancelModal && (
-                <Modal title="Cancel Order" onClose={() => setShowCancelModal(false)}>
-                    <div className="alert alert-error">This will cancel the order and restore stock for available items.</div>
+                <Modal title={t("order_detail.modal_cancel_title")} onClose={() => setShowCancelModal(false)}>
+                    <div className="alert alert-error">{t("order_detail.modal_cancel_warning")}</div>
                     <div className="form-group" style={{ marginBottom: 16 }}>
-                        <label>Cancellation Reason</label>
+                        <label>{t("order_detail.modal_cancel_reason")}</label>
                         <textarea value={cancelReason} onChange={(e) => setCancelReason(e.target.value)}
-                            placeholder="e.g. Item permanently out of stock" rows={2} />
+                            placeholder={t("order_detail.modal_cancel_reason_placeholder")} rows={2} />
                     </div>
                     <div className="modal-actions">
-                        <button className="btn btn-outline" onClick={() => setShowCancelModal(false)}>Back</button>
-                        <button className="btn btn-danger" onClick={handleCancel} disabled={actionLoading}>Cancel Order</button>
+                        <button className="btn btn-outline" onClick={() => setShowCancelModal(false)}>{t("order_detail.modal_back")}</button>
+                        <button className="btn btn-danger" onClick={handleCancel} disabled={actionLoading}>{t("order_detail.modal_cancel_btn")}</button>
                     </div>
                 </Modal>
             )}
@@ -341,13 +343,9 @@ function Modal({ title, children, onClose }) {
 
 function fmt(d) { return d ? new Date(d).toLocaleDateString("en-IN") : "—"; }
 
-function PayBadge({ status }) {
-    const map = {
-        advance_paid: ["badge-advance", "Advance Paid"],
-        fully_paid: ["badge-fully-paid", "Fully Paid"],
-        pending_after_delivery: ["badge-pending-due", "Due After Delivery"],
-        refunded: ["badge-refunded", "Refunded"],
-    };
-    const [cls, label] = map[status] || ["", status];
-    return <span className={`badge ${cls}`}>{label}</span>;
-}
+const PAY_BADGE = {
+    advance_paid: "badge-advance",
+    fully_paid: "badge-fully-paid",
+    pending_after_delivery: "badge-pending-due",
+    refunded: "badge-refunded",
+};

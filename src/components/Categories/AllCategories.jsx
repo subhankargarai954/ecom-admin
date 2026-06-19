@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import api from "../../api";
 
+const EMPTY = { name: "", name_bn: "", image_url: "" };
+
 export default function AllCategories() {
+    const { t } = useTranslation();
     const [categories, setCategories] = useState([]);
-    const [form, setForm] = useState({ name: "", image_url: "" });
+    const [form, setForm] = useState(EMPTY);
     const [editId, setEditId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -30,7 +34,7 @@ export default function AllCategories() {
                 const { data } = await api.post("/admin/api/categories", form);
                 setCategories((prev) => [...prev, data.category]);
             }
-            setForm({ name: "", image_url: "" });
+            setForm(EMPTY);
             setEditId(null);
         } catch (err) {
             setError(err.response?.data?.error || "Save failed.");
@@ -38,12 +42,12 @@ export default function AllCategories() {
     };
 
     const startEdit = (cat) => {
-        setForm({ name: cat.name, image_url: cat.image_url || "" });
+        setForm({ name: cat.name, name_bn: cat.name_bn || "", image_url: cat.image_url || "" });
         setEditId(cat.id);
     };
 
     const deleteCategory = async (id, name) => {
-        if (!window.confirm(`Delete category "${name}"?`)) return;
+        if (!window.confirm(t("categories.delete_confirm", { name }))) return;
         try {
             await api.delete(`/admin/api/categories/${id}`);
             setCategories((prev) => prev.filter((c) => c.id !== id));
@@ -52,41 +56,46 @@ export default function AllCategories() {
         }
     };
 
-    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>Loading…</div>;
+    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>{t("categories.loading")}</div>;
 
     return (
         <div>
-            <div className="topbar"><h1>Categories</h1></div>
+            <div className="topbar"><h1>{t("categories.title")}</h1></div>
             {error && <div className="alert alert-error">{error}</div>}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" }}>
                 {/* Form */}
                 <div className="card">
                     <div className="card-header">
-                        <h2>{editId ? "Edit Category" : "Add Category"}</h2>
-                        {editId && <button className="btn btn-outline btn-sm" onClick={() => { setEditId(null); setForm({ name: "", image_url: "" }); }}>Cancel</button>}
+                        <h2>{editId ? t("categories.edit") : t("categories.add")}</h2>
+                        {editId && <button className="btn btn-outline btn-sm" onClick={() => { setEditId(null); setForm(EMPTY); }}>{t("categories.cancel")}</button>}
                     </div>
                     <div className="form-group" style={{ marginBottom: 12 }}>
-                        <label>Category Name *</label>
+                        <label>{t("categories.name")} *</label>
                         <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            placeholder="e.g. Groceries, Electronics" />
+                            placeholder={t("categories.name_placeholder")} />
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 12 }}>
+                        <label>{t("categories.name_bn")}</label>
+                        <input value={form.name_bn} onChange={(e) => setForm({ ...form, name_bn: e.target.value })}
+                            placeholder={t("categories.name_bn_placeholder")} />
                     </div>
                     <div className="form-group" style={{ marginBottom: 16 }}>
-                        <label>Category Image URL (optional)</label>
+                        <label>{t("categories.image_url")}</label>
                         <input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })}
                             placeholder="https://..." />
                     </div>
                     <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-                        {saving ? "Saving…" : editId ? "Update" : "Add Category"}
+                        {saving ? t("categories.saving") : editId ? t("categories.update_btn") : t("categories.add_btn")}
                     </button>
                 </div>
 
                 {/* List */}
                 <div className="card">
-                    <div className="card-header"><h2>{categories.length} Categories</h2></div>
+                    <div className="card-header"><h2>{t("categories.count", { count: categories.length })}</h2></div>
                     {categories.length === 0 && (
                         <div className="empty-state">
                             <div className="empty-icon">🏷️</div>
-                            <h3>No categories yet</h3>
+                            <h3>{t("categories.none")}</h3>
                         </div>
                     )}
                     {categories.map((cat) => (
@@ -96,9 +105,12 @@ export default function AllCategories() {
                             ) : (
                                 <div style={{ width: 40, height: 40, borderRadius: 8, background: "#f5f6fa", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>🏷️</div>
                             )}
-                            <span style={{ flex: 1, fontWeight: 500 }}>{cat.name}</span>
-                            <button className="btn btn-outline btn-sm" onClick={() => startEdit(cat)}>Edit</button>
-                            <button className="btn btn-danger btn-sm" onClick={() => deleteCategory(cat.id, cat.name)}>Delete</button>
+                            <span style={{ flex: 1, fontWeight: 500 }}>
+                                {cat.name}
+                                {cat.name_bn && <span style={{ color: "#636e72", fontWeight: 400 }}> · {cat.name_bn}</span>}
+                            </span>
+                            <button className="btn btn-outline btn-sm" onClick={() => startEdit(cat)}>{t("categories.edit_btn")}</button>
+                            <button className="btn btn-danger btn-sm" onClick={() => deleteCategory(cat.id, cat.name)}>{t("categories.delete_btn")}</button>
                         </div>
                     ))}
                 </div>

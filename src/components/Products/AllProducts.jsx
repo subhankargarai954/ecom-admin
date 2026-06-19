@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import api from "../../api";
 
 export default function AllProducts() {
+    const { t } = useTranslation();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -13,16 +15,17 @@ export default function AllProducts() {
             const { data } = await api.get("/admin/api/products");
             setProducts(data.products || []);
         } catch (err) {
-            setError("Failed to load products.");
+            setError(t("products.load_failed"));
         } finally {
             setLoading(false);
         }
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { fetchProducts(); }, []);
 
     const deleteProduct = async (id, name) => {
-        if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
+        if (!window.confirm(t("products.delete_confirm", { name }))) return;
         try {
             await api.delete(`/admin/api/products/${id}`);
             setProducts((prev) => prev.filter((p) => p.id !== id));
@@ -35,21 +38,21 @@ export default function AllProducts() {
         p.name.toLowerCase().includes(search.toLowerCase())
     );
 
-    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>Loading products…</div>;
+    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>{t("products.loading")}</div>;
 
     return (
         <div>
             <div className="topbar">
-                <h1>Products</h1>
-                <Link to="/products/new" className="btn btn-primary">+ Add Product</Link>
+                <h1>{t("products.title")}</h1>
+                <Link to="/products/new" className="btn btn-primary">+ {t("products.add_product")}</Link>
             </div>
             {error && <div className="alert alert-error">{error}</div>}
             <div className="card">
                 <div className="card-header">
-                    <h2>{products.length} Products</h2>
+                    <h2>{t("products.count", { count: products.length })}</h2>
                     <input
                         type="text"
-                        placeholder="Search products…"
+                        placeholder={t("products.search")}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         style={{ padding: "7px 12px", border: "1px solid #dfe6e9", borderRadius: 6, fontSize: 13, width: 220 }}
@@ -59,15 +62,15 @@ export default function AllProducts() {
                     <table>
                         <thead>
                             <tr>
-                                <th>Image</th>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Discount</th>
-                                <th>Stock</th>
-                                <th>Variants</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th>{t("products.col_image")}</th>
+                                <th>{t("products.col_name")}</th>
+                                <th>{t("products.col_category")}</th>
+                                <th>{t("products.col_price")}</th>
+                                <th>{t("products.col_discount")}</th>
+                                <th>{t("products.col_stock")}</th>
+                                <th>{t("products.col_variants")}</th>
+                                <th>{t("products.col_status")}</th>
+                                <th>{t("products.col_actions")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -75,8 +78,8 @@ export default function AllProducts() {
                                 <tr><td colSpan={9}>
                                     <div className="empty-state">
                                         <div className="empty-icon">📦</div>
-                                        <h3>No products found</h3>
-                                        <p>Add your first product to get started.</p>
+                                        <h3>{t("products.none_title")}</h3>
+                                        <p>{t("products.none_hint")}</p>
                                     </div>
                                 </td></tr>
                             )}
@@ -95,12 +98,15 @@ export default function AllProducts() {
                                                 <div className="no-img">📦</div>
                                             )}
                                         </td>
-                                        <td><strong>{p.name}</strong></td>
+                                        <td>
+                                            <strong>{p.name}</strong>
+                                            {p.name_bn && <small style={{ color: "#636e72", display: "block" }}>{p.name_bn}</small>}
+                                        </td>
                                         <td>{p.category?.name || "—"}</td>
                                         <td>
                                             ₹{effectivePrice.toFixed(2)}
                                             {parseFloat(p.discount_percent) > 0 && (
-                                                <small style={{ color: "#636e72", display: "block" }}>MRP ₹{parseFloat(p.base_price).toFixed(2)}</small>
+                                                <small style={{ color: "#636e72", display: "block" }}>{t("products.mrp")} ₹{parseFloat(p.base_price).toFixed(2)}</small>
                                             )}
                                         </td>
                                         <td>{parseFloat(p.discount_percent) > 0 ? `${p.discount_percent}%` : "—"}</td>
@@ -112,12 +118,12 @@ export default function AllProducts() {
                                         <td>{p.variants?.length || 0}</td>
                                         <td>
                                             <span className={`badge ${p.is_active ? "badge-ready" : "badge-cancelled"}`}>
-                                                {p.is_active ? "Active" : "Inactive"}
+                                                {p.is_active ? t("products.active") : t("products.inactive")}
                                             </span>
                                         </td>
                                         <td style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                                            <Link to={`/products/${p.id}/edit`} className="btn btn-outline btn-sm">Edit</Link>
-                                            <button onClick={() => deleteProduct(p.id, p.name)} className="btn btn-danger btn-sm">Delete</button>
+                                            <Link to={`/products/${p.id}/edit`} className="btn btn-outline btn-sm">{t("products.edit")}</Link>
+                                            <button onClick={() => deleteProduct(p.id, p.name)} className="btn btn-danger btn-sm">{t("products.delete")}</button>
                                         </td>
                                     </tr>
                                 );
