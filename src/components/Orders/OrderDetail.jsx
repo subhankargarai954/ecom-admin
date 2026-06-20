@@ -71,7 +71,7 @@ export default function OrderDetail() {
         setSuccess("✓");
     });
 
-    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>{t("order_detail.loading")}</div>;
+    if (loading) return <div style={{ padding: 40, color: "var(--text-muted)" }}>{t("order_detail.loading")}</div>;
     if (!order) return <div className="alert alert-error">{t("order_detail.not_found")}</div>;
 
     const stepIdx = STEPS.indexOf(order.order_status);
@@ -114,9 +114,9 @@ export default function OrderDetail() {
                 <div className="card">
                     <div className="card-header"><h2>{t("order_detail.customer")}</h2></div>
                     <p><strong>{order.user?.name}</strong></p>
-                    <p style={{ color: "#636e72", fontSize: 13 }}>📞 {order.user?.phone}</p>
-                    {order.user?.email && <p style={{ color: "#636e72", fontSize: 13 }}>✉️ {order.user.email}</p>}
-                    {order.user?.address && <p style={{ color: "#636e72", fontSize: 13 }}>📍 {order.user.address}</p>}
+                    <p style={{ color: "var(--text-muted)", fontSize: 13 }}>📞 {order.user?.phone}</p>
+                    {order.user?.email && <p style={{ color: "var(--text-muted)", fontSize: 13 }}>✉️ {order.user.email}</p>}
+                    {order.user?.address && <p style={{ color: "var(--text-muted)", fontSize: 13 }}>📍 {order.user.address}</p>}
                 </div>
 
                 {/* Payment Info */}
@@ -124,14 +124,14 @@ export default function OrderDetail() {
                     <div className="card-header"><h2>{t("order_detail.payment")}</h2></div>
                     <table style={{ width: "100%", fontSize: 13 }}>
                         <tbody>
-                            <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.order_total")}</td><td style={{ textAlign: "right", fontWeight: 600 }}>₹{parseFloat(order.total_amount).toFixed(2)}</td></tr>
-                            <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.advance_paid")} ({order.advance_payment_mode})</td><td style={{ textAlign: "right", color: "#00b894", fontWeight: 600 }}>₹{parseFloat(order.advance_paid).toFixed(2)}</td></tr>
+                            <tr><td style={{ padding: "4px 0", color: "var(--text-muted)" }}>{t("order_detail.order_total")}</td><td style={{ textAlign: "right", fontWeight: 600 }}>₹{parseFloat(order.total_amount).toFixed(2)}</td></tr>
+                            <tr><td style={{ padding: "4px 0", color: "var(--text-muted)" }}>{t("order_detail.advance_paid")} ({order.advance_payment_mode})</td><td style={{ textAlign: "right", color: "var(--ok)", fontWeight: 600 }}>₹{parseFloat(order.advance_paid).toFixed(2)}</td></tr>
                             {parseFloat(order.final_paid) > 0 && (
-                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.final_paid")} ({order.final_payment_mode})</td><td style={{ textAlign: "right", color: "#00b894", fontWeight: 600 }}>₹{parseFloat(order.final_paid).toFixed(2)}</td></tr>
+                                <tr><td style={{ padding: "4px 0", color: "var(--text-muted)" }}>{t("order_detail.final_paid")} ({order.final_payment_mode})</td><td style={{ textAlign: "right", color: "var(--ok)", fontWeight: 600 }}>₹{parseFloat(order.final_paid).toFixed(2)}</td></tr>
                             )}
-                            <tr style={{ borderTop: "1px solid #dfe6e9" }}>
+                            <tr style={{ borderTop: "1px solid var(--border)" }}>
                                 <td style={{ padding: "8px 0 4px", fontWeight: 700 }}>{t("order_detail.pending_due")}</td>
-                                <td style={{ textAlign: "right", fontWeight: 700, color: parseFloat(pending_amount) > 0 ? "#d63031" : "#00b894" }}>
+                                <td style={{ textAlign: "right", fontWeight: 700, color: parseFloat(pending_amount) > 0 ? "var(--bad)" : "var(--ok)" }}>
                                     ₹{pending_amount}
                                 </td>
                             </tr>
@@ -147,18 +147,18 @@ export default function OrderDetail() {
                     <div className="card-header"><h2>{t("order_detail.delivery")}</h2></div>
                     <table style={{ width: "100%", fontSize: 13 }}>
                         <tbody>
-                            <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.all_available")}</td>
+                            <tr><td style={{ padding: "4px 0", color: "var(--text-muted)" }}>{t("order_detail.all_available")}</td>
                                 <td style={{ textAlign: "right" }}><span className={`badge ${order.all_items_available ? "badge-ready" : "badge-warning"}`}>{order.all_items_available ? t("order_detail.yes") : t("order_detail.no_preorder")}</span></td></tr>
                             {order.tentative_delivery_date && (
-                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.tentative_date")}</td>
-                                    <td style={{ textAlign: "right", color: "#e17055" }}>~{fmt(order.tentative_delivery_date)}</td></tr>
+                                <tr><td style={{ padding: "4px 0", color: "var(--text-muted)" }}>{t("order_detail.tentative_date")}</td>
+                                    <td style={{ textAlign: "right", color: "var(--warn)" }}>~{fmt(order.tentative_delivery_date)}</td></tr>
                             )}
                             {order.final_delivery_date && (
-                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.final_delivery_date")}</td>
-                                    <td style={{ textAlign: "right", color: "#00b894", fontWeight: 700 }}>{fmt(order.final_delivery_date)}</td></tr>
+                                <tr><td style={{ padding: "4px 0", color: "var(--text-muted)" }}>{t("order_detail.final_delivery_date")}</td>
+                                    <td style={{ textAlign: "right", color: "var(--ok)", fontWeight: 700 }}>{fmt(order.final_delivery_date)}</td></tr>
                             )}
                             {order.actual_delivery_date && (
-                                <tr><td style={{ padding: "4px 0", color: "#636e72" }}>{t("order_detail.collected_on")}</td>
+                                <tr><td style={{ padding: "4px 0", color: "var(--text-muted)" }}>{t("order_detail.collected_on")}</td>
                                     <td style={{ textAlign: "right", fontWeight: 600 }}>{new Date(order.actual_delivery_date).toLocaleString("en-IN")}</td></tr>
                             )}
                         </tbody>
@@ -267,7 +267,7 @@ export default function OrderDetail() {
                         <input type="date" value={deliveryDate}
                             onChange={(e) => setDeliveryDate(e.target.value)} required />
                     </div>
-                    <p style={{ fontSize: 12, color: "#636e72" }}>
+                    <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
                         {t("order_detail.modal_final_note")}
                     </p>
                     <div className="modal-actions">
@@ -302,7 +302,7 @@ export default function OrderDetail() {
                             <option value="mixed">{t("order_detail.mixed")}</option>
                         </select>
                     </div>
-                    <p style={{ fontSize: 12, color: "#636e72" }}>
+                    <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
                         {t("order_detail.modal_deliver_note")}
                     </p>
                     <div className="modal-actions">

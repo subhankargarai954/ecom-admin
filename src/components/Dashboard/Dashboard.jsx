@@ -35,15 +35,15 @@ export default function Dashboard() {
         }).catch(console.error).finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>{t("dashboard.loading")}</div>;
+    if (loading) return <div style={{ padding: 40, color: "var(--text-muted)" }}>{t("dashboard.loading")}</div>;
 
     const statCards = [
-        { label: t("dashboard.total_orders"), value: stats?.total || 0, color: "#0984e3" },
-        { label: t("dashboard.pending_preorders"), value: stats?.pending || 0, color: "#e17055" },
-        { label: t("dashboard.ready_pickup"), value: stats?.ready || 0, color: "#00b894" },
-        { label: t("dashboard.delivered"), value: stats?.delivered || 0, color: "#636e72" },
-        { label: t("dashboard.pending_dues"), value: stats?.pendingDuesCount || 0, color: "#d63031" },
-        { label: t("dashboard.total_due_amount"), value: `₹${stats?.totalDueAmount || 0}`, color: "#d63031" },
+        { label: t("dashboard.total_orders"), value: stats?.total || 0, color: "var(--accent)" },
+        { label: t("dashboard.pending_preorders"), value: stats?.pending || 0, color: "var(--warn)" },
+        { label: t("dashboard.ready_pickup"), value: stats?.ready || 0, color: "var(--ok)" },
+        { label: t("dashboard.delivered"), value: stats?.delivered || 0, color: "var(--text-muted)" },
+        { label: t("dashboard.pending_dues"), value: stats?.pendingDuesCount || 0, color: "var(--bad)" },
+        { label: t("dashboard.total_due_amount"), value: `₹${stats?.totalDueAmount || 0}`, color: "var(--bad)" },
     ];
 
     return (
@@ -82,12 +82,12 @@ export default function Dashboard() {
                         </thead>
                         <tbody>
                             {recentOrders.length === 0 && (
-                                <tr><td colSpan={7} style={{ textAlign: "center", padding: 24, color: "#636e72" }}>{t("dashboard.no_orders")}</td></tr>
+                                <tr><td colSpan={7} style={{ textAlign: "center", padding: 24, color: "var(--text-muted)" }}>{t("dashboard.no_orders")}</td></tr>
                             )}
                             {recentOrders.map((o) => (
                                 <tr key={o.id}>
                                     <td><strong>#{o.id}</strong></td>
-                                    <td>{o.user?.name}<br /><small style={{ color: "#636e72" }}>{o.user?.phone}</small></td>
+                                    <td>{o.user?.name}<br /><small style={{ color: "var(--text-muted)" }}>{o.user?.phone}</small></td>
                                     <td>₹{parseFloat(o.total_amount).toFixed(2)}</td>
                                     <td>₹{parseFloat(o.advance_paid).toFixed(2)}</td>
                                     <td><span className={`badge ${BADGE[o.order_status] || "badge-pending"}`}>{t(`order_status.${o.order_status}`)}</span></td>

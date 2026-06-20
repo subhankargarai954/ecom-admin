@@ -2,6 +2,7 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
+import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
     { to: "/", icon: "📊", key: "dashboard", end: true },
@@ -41,8 +42,11 @@ export default function AdminLayout({ children }) {
                     ))}
                 </nav>
                 <div className="sidebar-footer">
+                    <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+                        <ThemeToggle />
+                    </div>
                     <LanguageSwitcher />
-                    <div style={{ fontSize: 12, color: "#636e72", marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>
                         👤 {user.name || "Admin"}
                     </div>
                     <button onClick={logout}>{t("nav.logout")}</button>

@@ -56,7 +56,7 @@ export default function AllCategories() {
         }
     };
 
-    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>{t("categories.loading")}</div>;
+    if (loading) return <div style={{ padding: 40, color: "var(--text-muted)" }}>{t("categories.loading")}</div>;
 
     return (
         <div>
@@ -99,15 +99,15 @@ export default function AllCategories() {
                         </div>
                     )}
                     {categories.map((cat) => (
-                        <div key={cat.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid #f5f6fa" }}>
+                        <div key={cat.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
                             {cat.image_url ? (
                                 <img src={cat.image_url} alt={cat.name} style={{ width: 40, height: 40, borderRadius: 8, objectFit: "cover" }} />
                             ) : (
-                                <div style={{ width: 40, height: 40, borderRadius: 8, background: "#f5f6fa", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>🏷️</div>
+                                <div style={{ width: 40, height: 40, borderRadius: 8, background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>🏷️</div>
                             )}
                             <span style={{ flex: 1, fontWeight: 500 }}>
                                 {cat.name}
-                                {cat.name_bn && <span style={{ color: "#636e72", fontWeight: 400 }}> · {cat.name_bn}</span>}
+                                {cat.name_bn && <span style={{ color: "var(--text-muted)", fontWeight: 400 }}> · {cat.name_bn}</span>}
                             </span>
                             <button className="btn btn-outline btn-sm" onClick={() => startEdit(cat)}>{t("categories.edit_btn")}</button>
                             <button className="btn btn-danger btn-sm" onClick={() => deleteCategory(cat.id, cat.name)}>{t("categories.delete_btn")}</button>

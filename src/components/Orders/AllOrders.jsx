@@ -53,7 +53,7 @@ export default function AllOrders() {
                 </div>
 
                 {loading ? (
-                    <div style={{ padding: 24, color: "#636e72" }}>{t("orders.loading")}</div>
+                    <div style={{ padding: 24, color: "var(--text-muted)" }}>{t("orders.loading")}</div>
                 ) : (
                     <div className="table-wrapper">
                         <table>
@@ -85,7 +85,7 @@ export default function AllOrders() {
                                         <td><strong>#{o.id}</strong></td>
                                         <td>
                                             <strong>{o.user?.name}</strong><br />
-                                            <small style={{ color: "#636e72" }}>{o.user?.phone}</small>
+                                            <small style={{ color: "var(--text-muted)" }}>{o.user?.phone}</small>
                                         </td>
                                         <td>{t("orders.items_count", { count: o.items?.length || 0 })}</td>
                                         <td><strong>₹{parseFloat(o.total_amount).toFixed(2)}</strong></td>
@@ -94,9 +94,9 @@ export default function AllOrders() {
                                         <td><span className={`badge ${STATUS_BADGE[o.order_status] || ""}`}>{t(`order_status.${o.order_status}`)}</span></td>
                                         <td>
                                             {o.final_delivery_date
-                                                ? <strong style={{ color: "#00b894" }}>{fmt(o.final_delivery_date)}</strong>
+                                                ? <strong style={{ color: "var(--ok)" }}>{fmt(o.final_delivery_date)}</strong>
                                                 : o.tentative_delivery_date
-                                                    ? <span style={{ color: "#e17055" }}>~{fmt(o.tentative_delivery_date)}</span>
+                                                    ? <span style={{ color: "var(--warn)" }}>~{fmt(o.tentative_delivery_date)}</span>
                                                     : "—"}
                                         </td>
                                         <td>{new Date(o.created_at).toLocaleDateString("en-IN")}</td>

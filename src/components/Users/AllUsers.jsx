@@ -20,7 +20,7 @@ export default function AllUsers() {
         u.phone.includes(search)
     );
 
-    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>{t("customers.loading")}</div>;
+    if (loading) return <div style={{ padding: 40, color: "var(--text-muted)" }}>{t("customers.loading")}</div>;
 
     return (
         <div>
@@ -30,7 +30,7 @@ export default function AllUsers() {
                     <h2>{t("customers.count", { count: users.length })}</h2>
                     <input type="text" placeholder={t("customers.search")}
                         value={search} onChange={(e) => setSearch(e.target.value)}
-                        style={{ padding: "7px 12px", border: "1px solid #dfe6e9", borderRadius: 6, fontSize: 13, width: 240 }} />
+                        style={{ padding: "7px 12px", border: "1px solid var(--border)", borderRadius: 6, fontSize: 13, width: 240 }} />
                 </div>
                 <div className="table-wrapper">
                     <table>

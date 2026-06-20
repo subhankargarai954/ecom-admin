@@ -38,7 +38,7 @@ export default function AllProducts() {
         p.name.toLowerCase().includes(search.toLowerCase())
     );
 
-    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>{t("products.loading")}</div>;
+    if (loading) return <div style={{ padding: 40, color: "var(--text-muted)" }}>{t("products.loading")}</div>;
 
     return (
         <div>
@@ -55,7 +55,7 @@ export default function AllProducts() {
                         placeholder={t("products.search")}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        style={{ padding: "7px 12px", border: "1px solid #dfe6e9", borderRadius: 6, fontSize: 13, width: 220 }}
+                        style={{ padding: "7px 12px", border: "1px solid var(--border)", borderRadius: 6, fontSize: 13, width: 220 }}
                     />
                 </div>
                 <div className="table-wrapper">
@@ -100,18 +100,18 @@ export default function AllProducts() {
                                         </td>
                                         <td>
                                             <strong>{p.name}</strong>
-                                            {p.name_bn && <small style={{ color: "#636e72", display: "block" }}>{p.name_bn}</small>}
+                                            {p.name_bn && <small style={{ color: "var(--text-muted)", display: "block" }}>{p.name_bn}</small>}
                                         </td>
                                         <td>{p.category?.name || "—"}</td>
                                         <td>
                                             ₹{effectivePrice.toFixed(2)}
                                             {parseFloat(p.discount_percent) > 0 && (
-                                                <small style={{ color: "#636e72", display: "block" }}>{t("products.mrp")} ₹{parseFloat(p.base_price).toFixed(2)}</small>
+                                                <small style={{ color: "var(--text-muted)", display: "block" }}>{t("products.mrp")} ₹{parseFloat(p.base_price).toFixed(2)}</small>
                                             )}
                                         </td>
                                         <td>{parseFloat(p.discount_percent) > 0 ? `${p.discount_percent}%` : "—"}</td>
                                         <td>
-                                            <span style={{ color: totalStock === 0 ? "#d63031" : "#00b894", fontWeight: 600 }}>
+                                            <span style={{ color: totalStock === 0 ? "var(--bad)" : "var(--ok)", fontWeight: 600 }}>
                                                 {totalStock}
                                             </span>
                                         </td>

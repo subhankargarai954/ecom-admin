@@ -218,7 +218,7 @@ export default function ProductForm() {
                                 placeholder={t("product_form.description_bn_placeholder")} rows={3} />
                         </div>
                         <div className="form-group full-width">
-                            <p style={{ fontSize: 12, color: "#636e72" }}>{t("product_form.bn_hint")}</p>
+                            <p style={{ fontSize: 12, color: "var(--text-muted)" }}>{t("product_form.bn_hint")}</p>
                         </div>
                     </div>
                 </div>
@@ -226,25 +226,25 @@ export default function ProductForm() {
                 {/* Variants */}
                 <div className="card">
                     <div className="card-header">
-                        <h2>{t("product_form.variants")} <small style={{ color: "#636e72", fontWeight: 400 }}>{t("product_form.variants_hint")}</small></h2>
+                        <h2>{t("product_form.variants")} <small style={{ color: "var(--text-muted)", fontWeight: 400 }}>{t("product_form.variants_hint")}</small></h2>
                     </div>
                     {hasVariants && (
                         <div style={{ marginBottom: 16 }}>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 8, fontWeight: 600, fontSize: 11, color: "#636e72", textTransform: "uppercase", padding: "0 0 6px", borderBottom: "1px solid #f5f6fa", marginBottom: 8 }}>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 8, fontWeight: 600, fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", padding: "0 0 6px", borderBottom: "1px solid var(--border)", marginBottom: 8 }}>
                                 <span>{t("product_form.variant_name")}</span><span>{t("product_form.price_override")}</span><span>{t("product_form.qty")}</span><span></span>
                             </div>
                             {variants.map((v) => (
                                 <div key={v.id} className="variant-row">
                                     <input value={v.variant_name}
                                         onChange={(e) => updateVariantField(v, "variant_name", e.target.value)}
-                                        style={{ padding: "8px 10px", border: "1px solid #dfe6e9", borderRadius: 6, fontSize: 13 }} />
+                                        style={{ padding: "8px 10px", border: "1px solid var(--border)", borderRadius: 6, fontSize: 13 }} />
                                     <input type="number" step="0.01" min="0" value={v.price_override || ""}
                                         onChange={(e) => updateVariantField(v, "price_override", e.target.value)}
                                         placeholder="—"
-                                        style={{ padding: "8px 10px", border: "1px solid #dfe6e9", borderRadius: 6, fontSize: 13 }} />
+                                        style={{ padding: "8px 10px", border: "1px solid var(--border)", borderRadius: 6, fontSize: 13 }} />
                                     <input type="number" min="0" value={v.available_quantity}
                                         onChange={(e) => updateVariantField(v, "available_quantity", e.target.value)}
-                                        style={{ padding: "8px 10px", border: "1px solid #dfe6e9", borderRadius: 6, fontSize: 13 }} />
+                                        style={{ padding: "8px 10px", border: "1px solid var(--border)", borderRadius: 6, fontSize: 13 }} />
                                     <button type="button" onClick={() => removeVariant(v)} className="btn btn-danger btn-sm">✕</button>
                                 </div>
                             ))}
@@ -253,19 +253,19 @@ export default function ProductForm() {
                     <div className="variant-row" style={{ marginTop: 8 }}>
                         <input placeholder={t("product_form.variant_name_placeholder")} value={newVariant.variant_name}
                             onChange={(e) => setNewVariant({ ...newVariant, variant_name: e.target.value })}
-                            style={{ padding: "8px 10px", border: "1px solid #dfe6e9", borderRadius: 6, fontSize: 13 }} />
+                            style={{ padding: "8px 10px", border: "1px solid var(--border)", borderRadius: 6, fontSize: 13 }} />
                         <input type="number" step="0.01" min="0" placeholder={t("product_form.price_optional")}
                             value={newVariant.price_override}
                             onChange={(e) => setNewVariant({ ...newVariant, price_override: e.target.value })}
-                            style={{ padding: "8px 10px", border: "1px solid #dfe6e9", borderRadius: 6, fontSize: 13 }} />
+                            style={{ padding: "8px 10px", border: "1px solid var(--border)", borderRadius: 6, fontSize: 13 }} />
                         <input type="number" min="0" placeholder={t("product_form.qty")}
                             value={newVariant.available_quantity}
                             onChange={(e) => setNewVariant({ ...newVariant, available_quantity: e.target.value })}
-                            style={{ padding: "8px 10px", border: "1px solid #dfe6e9", borderRadius: 6, fontSize: 13 }} />
+                            style={{ padding: "8px 10px", border: "1px solid var(--border)", borderRadius: 6, fontSize: 13 }} />
                         <button type="button" onClick={addVariant} className="btn btn-success btn-sm">+ {t("product_form.add")}</button>
                     </div>
                     {hasVariants && (
-                        <p style={{ fontSize: 12, color: "#636e72", marginTop: 10 }}>
+                        <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 10 }}>
                             {t("product_form.variants_note")}
                         </p>
                     )}
@@ -275,13 +275,13 @@ export default function ProductForm() {
                 <div className="card">
                     <div className="card-header">
                         <h2>{t("product_form.images")}</h2>
-                        {imgLoading && <span style={{ fontSize: 12, color: "#636e72" }}>{t("product_form.uploading")}</span>}
+                        {imgLoading && <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{t("product_form.uploading")}</span>}
                     </div>
 
                     {/* Existing images */}
                     {images.length > 0 && (
                         <div style={{ marginBottom: 16 }}>
-                            <p style={{ fontSize: 12, color: "#636e72", marginBottom: 8 }}>
+                            <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>
                                 {t("product_form.existing_images")}
                             </p>
                             <div className="image-preview-grid">
@@ -314,7 +314,7 @@ export default function ProductForm() {
 
                     {previews.length > 0 && (
                         <div style={{ marginTop: 12 }}>
-                            <p style={{ fontSize: 12, color: "#636e72", marginBottom: 8 }}>
+                            <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>
                                 {t("product_form.new_images")}
                             </p>
                             <div className="image-preview-grid">

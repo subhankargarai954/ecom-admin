@@ -38,7 +38,7 @@ export default function PendingDues() {
         } finally { setSaving(false); }
     };
 
-    if (loading) return <div style={{ padding: 40, color: "#636e72" }}>{t("pending_dues.loading")}</div>;
+    if (loading) return <div style={{ padding: 40, color: "var(--text-muted)" }}>{t("pending_dues.loading")}</div>;
 
     return (
         <div>
@@ -46,11 +46,11 @@ export default function PendingDues() {
             {error && <div className="alert alert-error">{error}</div>}
 
             {dues.length > 0 && (
-                <div className="card" style={{ marginBottom: 20, background: "#fff5f5", border: "1px solid #ffcccc" }}>
+                <div className="card" style={{ marginBottom: 20, background: "var(--alert-error-bg)", border: "1px solid var(--border)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div>
-                            <div style={{ fontSize: 13, color: "#636e72" }}>{t("pending_dues.total_outstanding")}</div>
-                            <div style={{ fontSize: 28, fontWeight: 700, color: "#d63031" }}>₹{totalDue.toFixed(2)}</div>
+                            <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("pending_dues.total_outstanding")}</div>
+                            <div style={{ fontSize: 28, fontWeight: 700, color: "var(--bad)" }}>₹{totalDue.toFixed(2)}</div>
                         </div>
                         <div style={{ fontSize: 32 }}>💰</div>
                     </div>
@@ -91,20 +91,20 @@ export default function PendingDues() {
                                         <td><strong>{d.customer?.name}</strong></td>
                                         <td>
                                             <div>{d.customer?.phone}</div>
-                                            {d.customer?.email && <small style={{ color: "#636e72" }}>{d.customer.email}</small>}
+                                            {d.customer?.email && <small style={{ color: "var(--text-muted)" }}>{d.customer.email}</small>}
                                         </td>
                                         <td>₹{parseFloat(d.total_amount).toFixed(2)}</td>
                                         <td>₹{parseFloat(d.advance_paid).toFixed(2)}</td>
                                         <td>₹{parseFloat(d.final_paid).toFixed(2)}</td>
                                         <td>
-                                            <strong style={{ color: "#d63031", fontSize: 15 }}>
+                                            <strong style={{ color: "var(--bad)", fontSize: 15 }}>
                                                 ₹{parseFloat(d.pending_amount).toFixed(2)}
                                             </strong>
                                         </td>
                                         <td>{d.delivered_on ? new Date(d.delivered_on).toLocaleDateString("en-IN") : "—"}</td>
                                         <td>
                                             {d.items?.map((item) => (
-                                                <div key={item.id} style={{ fontSize: 12, color: "#636e72" }}>
+                                                <div key={item.id} style={{ fontSize: 12, color: "var(--text-muted)" }}>
                                                     {item.product?.name}{item.variant ? ` (${item.variant.variant_name})` : ""} × {item.quantity}
                                                 </div>
                                             ))}
