@@ -3,8 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api from "../../api";
 
-const STEPS = ["pending", "confirmed", "ready_for_pickup", "delivered"];
-
 export default function OrderDetail() {
     const { t } = useTranslation();
     const { id } = useParams();
@@ -15,14 +13,14 @@ export default function OrderDetail() {
     const [success, setSuccess] = useState("");
 
     // Modals
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [showDeliveryDateModal, setShowDeliveryDateModal] = useState(false);
+    const [showProductionModal, setShowProductionModal] = useState(false);
+    const [showReadyModal, setShowReadyModal] = useState(false);
     const [showDeliverModal, setShowDeliverModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
 
     // Form state
-    const [confirmForm, setConfirmForm] = useState({ tentative_delivery_date: "", admin_notes: "" });
-    const [deliveryDate, setDeliveryDate] = useState("");
+    const [productionForm, setProductionForm] = useState({ tentative_delivery_date: "", admin_notes: "" });
+    const [readyDate, setReadyDate] = useState("");
     const [deliverForm, setDeliverForm] = useState({ final_paid: "", final_payment_mode: "cash" });
     const [cancelReason, setCancelReason] = useState("");
     const [actionLoading, setActionLoading] = useState(false);
@@ -45,14 +43,20 @@ export default function OrderDetail() {
         finally { setActionLoading(false); }
     };
 
-    const handleConfirm = () => doAction(async () => {
-        await api.put(`/admin/api/orders/${id}/confirm`, confirmForm);
-        setSuccess("✓"); setShowConfirmModal(false);
+    // Confirm a CASH advance was received → order placed & stock reserved.
+    const handleConfirmAdvance = () => doAction(async () => {
+        await api.put(`/admin/api/orders/${id}/confirm-advance`);
+        setSuccess("✓");
     });
 
-    const handleSetDeliveryDate = () => doAction(async () => {
-        await api.put(`/admin/api/orders/${id}/delivery-date`, { final_delivery_date: deliveryDate });
-        setSuccess("✓"); setShowDeliveryDateModal(false);
+    const handleStartProduction = () => doAction(async () => {
+        await api.put(`/admin/api/orders/${id}/production`, productionForm);
+        setSuccess("✓"); setShowProductionModal(false);
+    });
+
+    const handleMarkReady = () => doAction(async () => {
+        await api.put(`/admin/api/orders/${id}/ready`, { final_delivery_date: readyDate });
+        setSuccess("✓"); setShowReadyModal(false);
     });
 
     const handleDeliver = () => doAction(async () => {
@@ -71,9 +75,30 @@ export default function OrderDetail() {
         setSuccess("✓");
     });
 
+    const getInvoiceBlobUrl = async () => {
+        const res = await api.get(`/admin/api/orders/${id}/invoice.pdf`, { responseType: "blob" });
+        return window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+    };
+    const downloadInvoice = async () => {
+        try {
+            const url = await getInvoiceBlobUrl();
+            const a = document.createElement("a");
+            a.href = url; a.download = `invoice-${order.invoice_no || order.id}.pdf`; a.click();
+            window.URL.revokeObjectURL(url);
+        } catch { alert("Could not download invoice."); }
+    };
+    const viewInvoice = async () => {
+        try { window.open(await getInvoiceBlobUrl(), "_blank"); }
+        catch { alert("Could not open invoice."); }
+    };
+
     if (loading) return <div style={{ padding: 40, color: "var(--text-muted)" }}>{t("order_detail.loading")}</div>;
     if (!order) return <div className="alert alert-error">{t("order_detail.not_found")}</div>;
 
+    const STEPS = order.is_made_to_order
+        ? ["confirmed", "in_production", "ready_for_pickup", "delivered"]
+        : ["confirmed", "ready_for_pickup", "delivered"];
+    const preConfirm = ["awaiting_payment", "pending"].includes(order.order_status);
     const stepIdx = STEPS.indexOf(order.order_status);
     const pending_amount = Math.max(0,
         parseFloat(order.total_amount) - parseFloat(order.advance_paid) - parseFloat(order.final_paid)
@@ -89,8 +114,17 @@ export default function OrderDetail() {
             {error && <div className="alert alert-error">{error}</div>}
             {success && <div className="alert alert-success">{success}</div>}
 
+            {/* Pre-confirmation banner */}
+            {preConfirm && (
+                <div className="alert alert-info">
+                    {order.order_status === "pending"
+                        ? "💵 " + t("actions2.confirm_advance_hint")
+                        : "💳 Customer is completing online payment."}
+                </div>
+            )}
+
             {/* Status Timeline */}
-            {order.order_status !== "cancelled" && (
+            {!preConfirm && order.order_status !== "cancelled" && (
                 <div className="card" style={{ marginBottom: 16 }}>
                     <div className="order-timeline">
                         {STEPS.map((s, i) => (
@@ -169,20 +203,31 @@ export default function OrderDetail() {
                 <div className="card">
                     <div className="card-header"><h2>{t("order_detail.actions")}</h2></div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        {order.order_status === "pending" && !order.all_items_available && (
-                            <button className="btn btn-primary" onClick={() => setShowConfirmModal(true)}>
-                                ✅ {t("order_detail.confirm_preorder")}
+                        {order.order_status === "pending" && (
+                            <button className="btn btn-success" onClick={handleConfirmAdvance} disabled={actionLoading}>
+                                ✅ {t("actions2.confirm_advance")}
                             </button>
                         )}
-                        {["pending", "confirmed"].includes(order.order_status) && (
-                            <button className="btn btn-success" onClick={() => setShowDeliveryDateModal(true)}>
-                                📅 {t("order_detail.set_final_date")}
+                        {["confirmed", "in_production"].includes(order.order_status) && order.is_made_to_order && (
+                            <button className="btn btn-warning" onClick={() => setShowProductionModal(true)}>
+                                🏭 {t("actions2.start_production")}
+                            </button>
+                        )}
+                        {["confirmed", "in_production"].includes(order.order_status) && (
+                            <button className="btn btn-success" onClick={() => setShowReadyModal(true)}>
+                                📦 {t("actions2.mark_ready")}
                             </button>
                         )}
                         {order.order_status === "ready_for_pickup" && (
                             <button className="btn btn-primary" onClick={() => setShowDeliverModal(true)}>
                                 🎉 {t("order_detail.mark_delivered")}
                             </button>
+                        )}
+                        {order.order_status === "delivered" && (
+                            <>
+                                <button className="btn btn-outline" onClick={viewInvoice}>🧾 {t("actions2.view_invoice")}</button>
+                                <button className="btn btn-outline" onClick={downloadInvoice}>⬇ {t("actions2.download_pdf")}</button>
+                            </>
                         )}
                         {order.order_status === "cancelled" && order.payment_status !== "refunded" && (
                             <button className="btn btn-secondary" onClick={handleMarkRefund}>
@@ -240,39 +285,39 @@ export default function OrderDetail() {
             </div>
 
             {/* Modals */}
-            {showConfirmModal && (
-                <Modal title={t("order_detail.modal_confirm_title")} onClose={() => setShowConfirmModal(false)}>
+            {showProductionModal && (
+                <Modal title={t("actions2.start_production")} onClose={() => setShowProductionModal(false)}>
                     <div className="form-group" style={{ marginBottom: 12 }}>
-                        <label>{t("order_detail.modal_tentative_label")}</label>
-                        <input type="date" value={confirmForm.tentative_delivery_date}
-                            onChange={(e) => setConfirmForm({ ...confirmForm, tentative_delivery_date: e.target.value })} />
+                        <label>{t("actions2.tentative_ready")}</label>
+                        <input type="date" value={productionForm.tentative_delivery_date}
+                            onChange={(e) => setProductionForm({ ...productionForm, tentative_delivery_date: e.target.value })} />
                     </div>
                     <div className="form-group" style={{ marginBottom: 16 }}>
                         <label>{t("order_detail.modal_admin_notes")}</label>
-                        <textarea value={confirmForm.admin_notes}
-                            onChange={(e) => setConfirmForm({ ...confirmForm, admin_notes: e.target.value })}
+                        <textarea value={productionForm.admin_notes}
+                            onChange={(e) => setProductionForm({ ...productionForm, admin_notes: e.target.value })}
                             placeholder={t("order_detail.modal_admin_notes_placeholder")} rows={2} />
                     </div>
                     <div className="modal-actions">
-                        <button className="btn btn-outline" onClick={() => setShowConfirmModal(false)}>{t("order_detail.modal_cancel")}</button>
-                        <button className="btn btn-primary" onClick={handleConfirm} disabled={actionLoading}>{t("order_detail.modal_confirm_btn")}</button>
+                        <button className="btn btn-outline" onClick={() => setShowProductionModal(false)}>{t("order_detail.modal_cancel")}</button>
+                        <button className="btn btn-warning" onClick={handleStartProduction} disabled={actionLoading}>{t("actions2.start_production")}</button>
                     </div>
                 </Modal>
             )}
 
-            {showDeliveryDateModal && (
-                <Modal title={t("order_detail.modal_final_title")} onClose={() => setShowDeliveryDateModal(false)}>
+            {showReadyModal && (
+                <Modal title={t("actions2.mark_ready")} onClose={() => setShowReadyModal(false)}>
                     <div className="form-group" style={{ marginBottom: 16 }}>
-                        <label>{t("order_detail.modal_final_label")} *</label>
-                        <input type="date" value={deliveryDate}
-                            onChange={(e) => setDeliveryDate(e.target.value)} required />
+                        <label>{t("actions2.ready_date")}</label>
+                        <input type="date" value={readyDate} onChange={(e) => setReadyDate(e.target.value)} />
+                        <small style={{ color: "var(--text-muted)", fontSize: 12 }}>Leave blank to use today.</small>
                     </div>
                     <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
                         {t("order_detail.modal_final_note")}
                     </p>
                     <div className="modal-actions">
-                        <button className="btn btn-outline" onClick={() => setShowDeliveryDateModal(false)}>{t("order_detail.modal_cancel")}</button>
-                        <button className="btn btn-success" onClick={handleSetDeliveryDate} disabled={actionLoading || !deliveryDate}>{t("order_detail.modal_confirm_date")}</button>
+                        <button className="btn btn-outline" onClick={() => setShowReadyModal(false)}>{t("order_detail.modal_cancel")}</button>
+                        <button className="btn btn-success" onClick={handleMarkReady} disabled={actionLoading}>{t("actions2.mark_ready")}</button>
                     </div>
                 </Modal>
             )}

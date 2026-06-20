@@ -7,6 +7,7 @@ const STATUS_TABS = [
     { key: "", labelKey: "tab_all" },
     { key: "pending", labelKey: "tab_pending" },
     { key: "confirmed", labelKey: "tab_confirmed" },
+    { key: "in_production", labelKey: "tab_production" },
     { key: "ready_for_pickup", labelKey: "tab_ready" },
     { key: "delivered", labelKey: "tab_delivered" },
     { key: "cancelled", labelKey: "tab_cancelled" },
@@ -123,8 +124,9 @@ export default function AllOrders() {
 function fmt(d) { return d ? new Date(d).toLocaleDateString("en-IN") : "—"; }
 
 const STATUS_BADGE = {
-    pending: "badge-pending", confirmed: "badge-confirmed",
-    ready_for_pickup: "badge-ready", delivered: "badge-delivered", cancelled: "badge-cancelled",
+    awaiting_payment: "badge-pending", pending: "badge-pending", confirmed: "badge-confirmed",
+    in_production: "badge-confirmed", ready_for_pickup: "badge-ready",
+    delivered: "badge-delivered", cancelled: "badge-cancelled",
 };
 
 const PAY_BADGE = {

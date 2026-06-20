@@ -139,6 +139,7 @@
         "tab_all": "All Orders",
         "tab_pending": "Pending",
         "tab_confirmed": "Confirmed",
+        "tab_production": "In Production",
         "tab_ready": "Ready for Pickup",
         "tab_delivered": "Delivered",
         "tab_cancelled": "Cancelled",
@@ -160,11 +161,30 @@
         "next": "Next"
     },
     "order_status": {
+        "awaiting_payment": "Awaiting Payment",
         "pending": "Pending",
         "confirmed": "Confirmed",
+        "in_production": "In Production",
         "ready_for_pickup": "Ready",
         "delivered": "Delivered",
         "cancelled": "Cancelled"
+    },
+    "notif": {
+        "title": "Notifications",
+        "none": "No notifications",
+        "mark_all": "Mark all read",
+        "view": "View order"
+    },
+    "actions2": {
+        "confirm_advance": "Confirm Advance Received (Cash)",
+        "confirm_advance_hint": "Customer chose cash. Confirm you received the advance to place the order & reserve stock.",
+        "start_production": "Start / Update Production",
+        "mark_ready": "Mark Ready for Pickup",
+        "set_ready_date": "Set Ready Date",
+        "view_invoice": "View Invoice",
+        "download_pdf": "Download PDF",
+        "tentative_ready": "Tentative Ready Date",
+        "ready_date": "Ready Date"
     },
     "payment_status": {
         "advance_paid": "Advance",

@@ -139,6 +139,7 @@
         "tab_all": "সমস্ত অর্ডার",
         "tab_pending": "অপেক্ষমাণ",
         "tab_confirmed": "নিশ্চিত",
+        "tab_production": "উৎপাদনে",
         "tab_ready": "সংগ্রহের জন্য প্রস্তুত",
         "tab_delivered": "ডেলিভারি সম্পন্ন",
         "tab_cancelled": "বাতিল",
@@ -160,11 +161,30 @@
         "next": "পরবর্তী"
     },
     "order_status": {
+        "awaiting_payment": "পেমেন্টের অপেক্ষায়",
         "pending": "অপেক্ষমাণ",
         "confirmed": "নিশ্চিত",
+        "in_production": "উৎপাদনে",
         "ready_for_pickup": "প্রস্তুত",
         "delivered": "ডেলিভারি সম্পন্ন",
         "cancelled": "বাতিল"
+    },
+    "notif": {
+        "title": "নোটিফিকেশন",
+        "none": "কোনো নোটিফিকেশন নেই",
+        "mark_all": "সব পঠিত চিহ্নিত করুন",
+        "view": "অর্ডার দেখুন"
+    },
+    "actions2": {
+        "confirm_advance": "অগ্রিম প্রাপ্তি নিশ্চিত করুন (নগদ)",
+        "confirm_advance_hint": "গ্রাহক নগদ বেছেছেন। অর্ডার স্থাপন ও স্টক সংরক্ষণ করতে অগ্রিম প্রাপ্তি নিশ্চিত করুন।",
+        "start_production": "উৎপাদন শুরু / আপডেট",
+        "mark_ready": "সংগ্রহের জন্য প্রস্তুত চিহ্নিত করুন",
+        "set_ready_date": "প্রস্তুতির তারিখ সেট করুন",
+        "view_invoice": "ইনভয়েস দেখুন",
+        "download_pdf": "PDF ডাউনলোড",
+        "tentative_ready": "সম্ভাব্য প্রস্তুতির তারিখ",
+        "ready_date": "প্রস্তুতির তারিখ"
     },
     "payment_status": {
         "advance_paid": "অগ্রিম",

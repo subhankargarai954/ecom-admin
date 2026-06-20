@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
+import NotificationBell from "./NotificationBell";
 
 const navItems = [
     { to: "/", icon: "📊", key: "dashboard", end: true },
@@ -52,7 +53,10 @@ export default function AdminLayout({ children }) {
                     <button onClick={logout}>{t("nav.logout")}</button>
                 </div>
             </aside>
-            <main className="main-content">{children}</main>
+            <main className="main-content">
+                <div className="admin-topbar-fixed"><NotificationBell /></div>
+                {children}
+            </main>
         </div>
     );
 }
