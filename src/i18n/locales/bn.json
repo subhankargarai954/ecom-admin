@@ -175,6 +175,29 @@
         "mark_all": "সব পঠিত চিহ্নিত করুন",
         "view": "অর্ডার দেখুন"
     },
+    "messages": {
+        "title": "গ্রাহক নোটিফিকেশন (SMS / WhatsApp)",
+        "none": "এখনও কোনো বার্তা পাঠানো হয়নি।",
+        "sim_mode": "সিমুলেশন মোড",
+        "resend_bill": "WhatsApp-এ বিল পুনরায় পাঠান",
+        "col_time": "সময়",
+        "col_channel": "মাধ্যম",
+        "col_event": "ইভেন্ট",
+        "col_status": "স্ট্যাটাস",
+        "col_message": "বার্তা",
+        "event": {
+            "order_placed": "অর্ডার করা হয়েছে",
+            "advance_confirmed": "অগ্রিম নিশ্চিত",
+            "order_ready": "পিকআপের জন্য প্রস্তুত",
+            "payment_received": "পেমেন্ট পাওয়া গেছে",
+            "order_completed": "অর্ডার সম্পন্ন"
+        },
+        "status": {
+            "sent": "পাঠানো হয়েছে",
+            "failed": "ব্যর্থ",
+            "simulated": "সিমুলেটেড"
+        }
+    },
     "actions2": {
         "confirm_advance": "অগ্রিম প্রাপ্তি নিশ্চিত করুন (নগদ)",
         "confirm_advance_hint": "গ্রাহক নগদ বেছেছেন। অর্ডার স্থাপন ও স্টক সংরক্ষণ করতে অগ্রিম প্রাপ্তি নিশ্চিত করুন।",

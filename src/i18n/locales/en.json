@@ -175,6 +175,29 @@
         "mark_all": "Mark all read",
         "view": "View order"
     },
+    "messages": {
+        "title": "Customer Notifications (SMS / WhatsApp)",
+        "none": "No messages sent yet.",
+        "sim_mode": "Simulation mode",
+        "resend_bill": "Resend Bill on WhatsApp",
+        "col_time": "Time",
+        "col_channel": "Channel",
+        "col_event": "Event",
+        "col_status": "Status",
+        "col_message": "Message",
+        "event": {
+            "order_placed": "Order placed",
+            "advance_confirmed": "Advance confirmed",
+            "order_ready": "Ready for pickup",
+            "payment_received": "Payment received",
+            "order_completed": "Order completed"
+        },
+        "status": {
+            "sent": "Sent",
+            "failed": "Failed",
+            "simulated": "Simulated"
+        }
+    },
     "actions2": {
         "confirm_advance": "Confirm Advance Received (Cash)",
         "confirm_advance_hint": "Customer chose cash. Confirm you received the advance to place the order & reserve stock.",

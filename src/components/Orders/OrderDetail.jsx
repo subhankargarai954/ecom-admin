@@ -11,6 +11,8 @@ export default function OrderDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [messages, setMessages] = useState([]);
+    const [msgLive, setMsgLive] = useState(false);
 
     // Modals
     const [showProductionModal, setShowProductionModal] = useState(false);
@@ -33,8 +35,22 @@ export default function OrderDetail() {
         finally { setLoading(false); }
     };
 
+    const fetchMessages = async () => {
+        try {
+            const { data } = await api.get(`/admin/api/orders/${id}/messages`);
+            setMessages(data.messages || []);
+            setMsgLive(!!data.live);
+        } catch { /* messages are non-critical */ }
+    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => { fetchOrder(); }, [id]);
+    useEffect(() => { fetchOrder(); fetchMessages(); }, [id]);
+
+    const handleResend = (event) => doAction(async () => {
+        await api.post(`/admin/api/orders/${id}/resend`, { event });
+        await fetchMessages();
+        setSuccess("✓");
+    });
 
     const doAction = async (fn) => {
         setActionLoading(true); setError(""); setSuccess("");
@@ -282,6 +298,56 @@ export default function OrderDetail() {
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            {/* Customer Notifications (SMS / WhatsApp) */}
+            <div className="card" style={{ marginTop: 8 }}>
+                <div className="card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <h2>{t("messages.title")}</h2>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        {!msgLive && <span className="badge badge-warning">{t("messages.sim_mode")}</span>}
+                        {order.order_status === "delivered" && (
+                            <button className="btn btn-outline btn-sm" onClick={() => handleResend("order_completed")} disabled={actionLoading}>
+                                🔁 {t("messages.resend_bill")}
+                            </button>
+                        )}
+                    </div>
+                </div>
+                {messages.length === 0 ? (
+                    <p style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("messages.none")}</p>
+                ) : (
+                    <div className="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>{t("messages.col_time")}</th>
+                                    <th>{t("messages.col_channel")}</th>
+                                    <th>{t("messages.col_event")}</th>
+                                    <th>{t("messages.col_status")}</th>
+                                    <th>{t("messages.col_message")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {messages.map((m) => (
+                                    <tr key={m.id}>
+                                        <td style={{ whiteSpace: "nowrap", fontSize: 12 }}>{new Date(m.created_at).toLocaleString("en-IN")}</td>
+                                        <td>{m.channel === "whatsapp" ? "🟢 WhatsApp" : "✉️ SMS"}</td>
+                                        <td style={{ fontSize: 12 }}>{t(`messages.event.${m.event}`, m.event)}</td>
+                                        <td>
+                                            <span className={`badge ${m.status === "sent" ? "badge-ready" : m.status === "failed" ? "badge-pending-due" : "badge-warning"}`}>
+                                                {t(`messages.status.${m.status}`, m.status)}
+                                            </span>
+                                        </td>
+                                        <td style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 320, whiteSpace: "pre-wrap" }}>
+                                            {m.body?.slice(0, 140)}{m.body?.length > 140 ? "…" : ""}
+                                            {m.media ? <div style={{ color: "var(--accent)", marginTop: 4 }}>📎 {JSON.parse(m.media).length} attachment(s)</div> : null}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             {/* Modals */}
