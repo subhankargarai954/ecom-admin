@@ -94,8 +94,8 @@ export default function PendingDues() {
                                             {d.customer?.email && <small style={{ color: "var(--text-muted)" }}>{d.customer.email}</small>}
                                         </td>
                                         <td>₹{parseFloat(d.total_amount).toFixed(2)}</td>
-                                        <td>₹{parseFloat(d.advance_paid).toFixed(2)}</td>
-                                        <td>₹{parseFloat(d.final_paid).toFixed(2)}</td>
+                                        <td style={{ color: parseFloat(d.advance_paid) > 0 ? "var(--ok)" : "var(--text-muted)", fontWeight: 600 }}>₹{parseFloat(d.advance_paid).toFixed(2)}</td>
+                                        <td style={{ color: parseFloat(d.final_paid) > 0 ? "var(--ok)" : "var(--text-muted)", fontWeight: 600 }}>₹{parseFloat(d.final_paid).toFixed(2)}</td>
                                         <td>
                                             <strong style={{ color: "var(--bad)", fontSize: 15 }}>
                                                 ₹{parseFloat(d.pending_amount).toFixed(2)}

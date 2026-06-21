@@ -24,6 +24,7 @@ export default function OrderDetail() {
     const [productionForm, setProductionForm] = useState({ tentative_delivery_date: "", admin_notes: "" });
     const [readyDate, setReadyDate] = useState("");
     const [deliverForm, setDeliverForm] = useState({ final_paid: "", final_payment_mode: "cash" });
+    const [payFullDue, setPayFullDue] = useState(false);
     const [cancelReason, setCancelReason] = useState("");
     const [actionLoading, setActionLoading] = useState(false);
 
@@ -65,6 +66,17 @@ export default function OrderDetail() {
         setSuccess("✓");
     });
 
+    // Confirm a customer's cash due request → clears the balance.
+    const handleConfirmDue = () => doAction(async () => {
+        await api.put(`/admin/api/orders/${id}/confirm-due`);
+        setSuccess("✓");
+    });
+    // Reject the cash request → customer can choose a payment option again.
+    const handleRejectDue = () => doAction(async () => {
+        await api.put(`/admin/api/orders/${id}/reject-due`);
+        setSuccess("✓");
+    });
+
     const handleStartProduction = () => doAction(async () => {
         await api.put(`/admin/api/orders/${id}/production`, productionForm);
         setSuccess("✓"); setShowProductionModal(false);
@@ -80,6 +92,48 @@ export default function OrderDetail() {
         setSuccess(`✓ ${data.pending_amount > 0 ? `₹${data.pending_amount}` : ""}`.trim());
         setShowDeliverModal(false);
     });
+
+    // Balance due as a string (used to cap the final-payment input).
+    const dueAmount = () => order
+        ? Math.max(0, parseFloat(order.total_amount) - parseFloat(order.advance_paid) - parseFloat(order.final_paid)).toFixed(2)
+        : "0.00";
+    // Default the ready-date picker to the tentative delivery date.
+    const openReady = () => {
+        setReadyDate(order?.tentative_delivery_date ? String(order.tentative_delivery_date).slice(0, 10) : "");
+        setShowReadyModal(true);
+    };
+    const openDeliver = () => {
+        // Default to collecting the full balance (checkbox pre-checked).
+        setDeliverForm({ final_paid: dueAmount(), final_payment_mode: "cash" });
+        setPayFullDue(true);
+        setShowDeliverModal(true);
+    };
+    // Clamp entry to the balance due; sync the "pay full due" checkbox.
+    const onFinalPaidChange = (e) => {
+        let v = e.target.value;
+        const max = parseFloat(dueAmount());
+        const num = parseFloat(v);
+        if (!isNaN(num) && num > max) v = String(max);
+        setDeliverForm((f) => ({ ...f, final_paid: v }));
+        const n2 = parseFloat(v);
+        setPayFullDue(!isNaN(n2) && Math.abs(n2 - max) < 0.01);
+    };
+    const onToggleFullDue = (e) => {
+        if (e.target.checked) {
+            setDeliverForm((f) => ({ ...f, final_paid: dueAmount() }));
+            setPayFullDue(true);
+        } else {
+            setDeliverForm((f) => ({ ...f, final_paid: "" }));
+            setPayFullDue(false);
+        }
+    };
+
+    // Add manufactured units to a product/variant's on-hand stock.
+    const handleAddStock = async (productId, variantId, quantity) => {
+        await api.post(`/admin/api/products/${productId}/add-stock`, { quantity, variant_id: variantId || null });
+        await fetchOrder();
+        setSuccess("✓");
+    };
 
     const handleCancel = () => doAction(async () => {
         await api.put(`/admin/api/orders/${id}/cancel`, { cancellation_reason: cancelReason });
@@ -111,14 +165,24 @@ export default function OrderDetail() {
     if (loading) return <div style={{ padding: 40, color: "var(--text-muted)" }}>{t("order_detail.loading")}</div>;
     if (!order) return <div className="alert alert-error">{t("order_detail.not_found")}</div>;
 
-    const STEPS = order.is_made_to_order
-        ? ["confirmed", "in_production", "ready_for_pickup", "delivered"]
-        : ["confirmed", "ready_for_pickup", "delivered"];
+    const { steps: tlSteps } = buildTimeline(order);
     const preConfirm = ["awaiting_payment", "pending"].includes(order.order_status);
-    const stepIdx = STEPS.indexOf(order.order_status);
     const pending_amount = Math.max(0,
         parseFloat(order.total_amount) - parseFloat(order.advance_paid) - parseFloat(order.final_paid)
     ).toFixed(2);
+    // For an unconfirmed (cash/awaiting) order, the committed advance lives on the
+    // pending Payment record until it's confirmed onto order.advance_paid.
+    const pendingAdvance = (order.payments || []).find(
+        (p) => p.payment_type === "advance" && p.status === "pending"
+    );
+    // A customer cash due request awaiting admin confirmation.
+    const cashDueRequested = (order.payments || []).find(
+        (p) => p.payment_type === "final" && p.status === "pending" && p.method === "cash"
+    );
+    // On-hand stock must cover every item before the order can be marked ready.
+    const onHandOf = (it) => (it.variant ? it.variant.available_quantity : it.product?.available_quantity) || 0;
+    const canMarkReady = (order.items || []).every((it) => onHandOf(it) >= it.quantity);
+    const canEditStock = ["confirmed", "in_production"].includes(order.order_status);
 
     return (
         <div>
@@ -139,14 +203,14 @@ export default function OrderDetail() {
                 </div>
             )}
 
-            {/* Status Timeline */}
-            {!preConfirm && order.order_status !== "cancelled" && (
+            {/* Status Timeline — full lifecycle; completed steps are green */}
+            {order.order_status !== "cancelled" && (
                 <div className="card" style={{ marginBottom: 16 }}>
                     <div className="order-timeline">
-                        {STEPS.map((s, i) => (
-                            <div key={s} className={`timeline-step ${i < stepIdx ? "done" : i === stepIdx ? "active" : ""}`}>
-                                <div className="timeline-dot">{i < stepIdx ? "✓" : i + 1}</div>
-                                <div className="timeline-label">{t(`order_status.${s}`)}</div>
+                        {tlSteps.map((st, i) => (
+                            <div key={st.key} className={`timeline-step ${st.done ? "done" : st.active ? "active" : ""}`}>
+                                <div className="timeline-dot">{st.done ? "✓" : i + 1}</div>
+                                <div className="timeline-label">{t(`timeline.${st.key}`)}</div>
                             </div>
                         ))}
                     </div>
@@ -175,7 +239,11 @@ export default function OrderDetail() {
                     <table style={{ width: "100%", fontSize: 13 }}>
                         <tbody>
                             <tr><td style={{ padding: "4px 0", color: "var(--text-muted)" }}>{t("order_detail.order_total")}</td><td style={{ textAlign: "right", fontWeight: 600 }}>₹{parseFloat(order.total_amount).toFixed(2)}</td></tr>
-                            <tr><td style={{ padding: "4px 0", color: "var(--text-muted)" }}>{t("order_detail.advance_paid")} ({order.advance_payment_mode})</td><td style={{ textAlign: "right", color: "var(--ok)", fontWeight: 600 }}>₹{parseFloat(order.advance_paid).toFixed(2)}</td></tr>
+                            <tr><td style={{ padding: "4px 0", color: "var(--text-muted)" }}>{t("order_detail.advance_paid")} ({order.advance_payment_mode})</td><td style={{ textAlign: "right", color: parseFloat(order.advance_paid) > 0 ? "var(--ok)" : "var(--text-muted)", fontWeight: 600 }}>₹{parseFloat(order.advance_paid).toFixed(2)}</td></tr>
+                            {pendingAdvance && (
+                                <tr><td style={{ padding: "4px 0", color: "var(--warn)" }}>{t("order_detail.advance_to_collect")} ({pendingAdvance.method})</td>
+                                    <td style={{ textAlign: "right", color: "var(--warn)", fontWeight: 700 }}>₹{parseFloat(pendingAdvance.amount).toFixed(2)} <span className="badge badge-pending" style={{ marginLeft: 4 }}>{t("order_detail.advance_pending")}</span></td></tr>
+                            )}
                             {parseFloat(order.final_paid) > 0 && (
                                 <tr><td style={{ padding: "4px 0", color: "var(--text-muted)" }}>{t("order_detail.final_paid")} ({order.final_payment_mode})</td><td style={{ textAlign: "right", color: "var(--ok)", fontWeight: 600 }}>₹{parseFloat(order.final_paid).toFixed(2)}</td></tr>
                             )}
@@ -221,8 +289,18 @@ export default function OrderDetail() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                         {order.order_status === "pending" && (
                             <button className="btn btn-success" onClick={handleConfirmAdvance} disabled={actionLoading}>
-                                ✅ {t("actions2.confirm_advance")}
+                                ✅ {t("actions2.confirm_advance")}{pendingAdvance ? ` — ₹${parseFloat(pendingAdvance.amount).toFixed(2)}` : ""}
                             </button>
+                        )}
+                        {cashDueRequested && (
+                            <>
+                                <button className="btn btn-success" onClick={handleConfirmDue} disabled={actionLoading}>
+                                    💵 {t("order_detail.confirm_cash_due", { amount: `₹${parseFloat(cashDueRequested.amount).toFixed(2)}` })}
+                                </button>
+                                <button className="btn btn-danger" onClick={handleRejectDue} disabled={actionLoading}>
+                                    ✕ {t("order_detail.reject_cash_due")}
+                                </button>
+                            </>
                         )}
                         {["confirmed", "in_production"].includes(order.order_status) && order.is_made_to_order && (
                             <button className="btn btn-warning" onClick={() => setShowProductionModal(true)}>
@@ -230,12 +308,17 @@ export default function OrderDetail() {
                             </button>
                         )}
                         {["confirmed", "in_production"].includes(order.order_status) && (
-                            <button className="btn btn-success" onClick={() => setShowReadyModal(true)}>
-                                📦 {t("actions2.mark_ready")}
-                            </button>
+                            <>
+                                <button className="btn btn-success" onClick={openReady} disabled={!canMarkReady}>
+                                    📦 {t("actions2.mark_ready")}
+                                </button>
+                                {!canMarkReady && (
+                                    <small style={{ color: "var(--warn)", marginTop: -4 }}>⚠ {t("order_detail.stock_needed_hint")}</small>
+                                )}
+                            </>
                         )}
                         {order.order_status === "ready_for_pickup" && (
-                            <button className="btn btn-primary" onClick={() => setShowDeliverModal(true)}>
+                            <button className="btn btn-primary" onClick={openDeliver}>
                                 🎉 {t("order_detail.mark_delivered")}
                             </button>
                         )}
@@ -273,6 +356,7 @@ export default function OrderDetail() {
                                 <th>{t("order_detail.col_qty")}</th>
                                 <th>{t("order_detail.col_subtotal")}</th>
                                 <th>{t("order_detail.col_in_stock")}</th>
+                                <th>{t("order_detail.col_on_hand")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -291,6 +375,9 @@ export default function OrderDetail() {
                                             <span className={`badge ${item.was_available_at_order ? "badge-ready" : "badge-pending"}`}>
                                                 {item.was_available_at_order ? t("order_detail.in_stock") : t("order_detail.preorder")}
                                             </span>
+                                        </td>
+                                        <td>
+                                            <StockCell item={item} t={t} canEdit={canEditStock} onAdd={handleAddStock} />
                                         </td>
                                     </tr>
                                 );
@@ -399,10 +486,14 @@ export default function OrderDetail() {
                     </div>
                     <div className="form-group" style={{ marginBottom: 12 }}>
                         <label>{t("order_detail.modal_final_received")}</label>
-                        <input type="number" step="0.01" min="0"
+                        <input type="number" step="0.01" min="0" max={pending_amount}
                             value={deliverForm.final_paid}
-                            onChange={(e) => setDeliverForm({ ...deliverForm, final_paid: e.target.value })}
+                            onChange={onFinalPaidChange}
                             placeholder={t("order_detail.modal_max", { amount: pending_amount })} />
+                        <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, fontSize: 13, cursor: "pointer", fontWeight: 500 }}>
+                            <input type="checkbox" checked={payFullDue} onChange={onToggleFullDue} style={{ width: "auto", margin: 0 }} />
+                            {t("order_detail.pay_full_due", { amount: `₹${pending_amount}` })}
+                        </label>
                     </div>
                     <div className="form-group" style={{ marginBottom: 16 }}>
                         <label>{t("order_detail.modal_payment_mode")}</label>
@@ -452,7 +543,64 @@ function Modal({ title, children, onClose }) {
     );
 }
 
+// Shows on-hand stock for an order item and, when short, an inline
+// "+ Add stock" control to add manufactured units to the product/variant.
+function StockCell({ item, t, canEdit, onAdd }) {
+    const onHand = (item.variant ? item.variant.available_quantity : item.product?.available_quantity) || 0;
+    const short = Math.max(0, item.quantity - onHand);
+    const [qty, setQty] = useState(short || 1);
+    const [busy, setBusy] = useState(false);
+    useEffect(() => { setQty(short || 1); }, [short]);
+
+    const add = async () => {
+        const n = parseInt(qty, 10);
+        if (!n || n <= 0) return;
+        setBusy(true);
+        try { await onAdd(item.product.id, item.variant?.id, n); }
+        catch (e) { alert(e.response?.data?.error || "Failed to add stock."); }
+        finally { setBusy(false); }
+    };
+
+    return (
+        <div>
+            <div style={{ fontWeight: 600, color: short > 0 ? "var(--bad)" : "var(--ok)" }}>
+                {onHand}{short > 0 ? ` · ${t("order_detail.short_by", { n: short })}` : " ✓"}
+            </div>
+            {canEdit && short > 0 && (
+                <div style={{ display: "flex", gap: 4, marginTop: 4, alignItems: "center" }}>
+                    <input type="number" min="1" value={qty} onChange={(e) => setQty(e.target.value)}
+                        style={{ width: 56, padding: "2px 6px", margin: 0 }} />
+                    <button className="btn btn-success btn-sm" onClick={add} disabled={busy}>
+                        + {t("order_detail.add_stock")}
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
+
 function fmt(d) { return d ? new Date(d).toLocaleDateString("en-IN") : "—"; }
+
+// Full order lifecycle for the timeline. The step matching the CURRENT status is
+// `active` (amber); steps the order has moved PAST are `done` (green ✓); later
+// steps are pending (grey). "delivered" is treated as done on handover, and the
+// final "fully_paid" step is the active one while a balance remains — so a
+// delivered-with-due order shows Delivered ✓ and Fully Paid as the active step.
+function buildTimeline(order) {
+    const balance = parseFloat(order.total_amount) - parseFloat(order.advance_paid) - parseFloat(order.final_paid);
+    const s = order.order_status;
+    const keys = ["placed", "confirmed", ...(order.is_made_to_order ? ["in_production"] : []), "ready_for_pickup", "delivered", "fully_paid"];
+    let activeKey;
+    if (s === "awaiting_payment" || s === "pending") activeKey = "placed";
+    else if (s === "confirmed") activeKey = "confirmed";
+    else if (s === "in_production") activeKey = "in_production";
+    else if (s === "ready_for_pickup") activeKey = "ready_for_pickup";
+    else if (s === "delivered") activeKey = balance > 0.01 ? "fully_paid" : null; // null = fully complete
+    else activeKey = "placed";
+    const activeIndex = activeKey ? keys.indexOf(activeKey) : keys.length;
+    const steps = keys.map((key, i) => ({ key, done: i < activeIndex, active: i === activeIndex }));
+    return { steps };
+}
 
 const PAY_BADGE = {
     advance_paid: "badge-advance",

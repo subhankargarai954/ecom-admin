@@ -89,7 +89,7 @@ export default function Dashboard() {
                                     <td><strong>#{o.id}</strong></td>
                                     <td>{o.user?.name}<br /><small style={{ color: "var(--text-muted)" }}>{o.user?.phone}</small></td>
                                     <td>₹{parseFloat(o.total_amount).toFixed(2)}</td>
-                                    <td>₹{parseFloat(o.advance_paid).toFixed(2)}</td>
+                                    <td>{advanceCell(o)}</td>
                                     <td><span className={`badge ${BADGE[o.order_status] || "badge-pending"}`}>{t(`order_status.${o.order_status}`)}</span></td>
                                     <td>{new Date(o.created_at).toLocaleDateString("en-IN")}</td>
                                     <td><Link to={`/orders/${o.id}`} className="btn btn-outline btn-sm">{t("dashboard.view")}</Link></td>
@@ -101,6 +101,16 @@ export default function Dashboard() {
             </div>
         </div>
     );
+}
+
+// Advance: green once received; amber committed-but-pending; muted ₹0.
+function advanceCell(o) {
+    if (parseFloat(o.advance_paid) > 0)
+        return <span style={{ color: "var(--ok)", fontWeight: 600 }}>₹{parseFloat(o.advance_paid).toFixed(2)}</span>;
+    const pending = (o.payments || []).find((p) => p.payment_type === "advance" && p.status === "pending");
+    if (pending)
+        return <span style={{ color: "var(--warn)", fontWeight: 700 }}>₹{parseFloat(pending.amount).toFixed(2)} •</span>;
+    return <span style={{ color: "var(--text-muted)" }}>₹0.00</span>;
 }
 
 const BADGE = {

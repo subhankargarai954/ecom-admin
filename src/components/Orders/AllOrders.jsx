@@ -90,7 +90,7 @@ export default function AllOrders() {
                                         </td>
                                         <td>{t("orders.items_count", { count: o.items?.length || 0 })}</td>
                                         <td><strong>₹{parseFloat(o.total_amount).toFixed(2)}</strong></td>
-                                        <td>₹{parseFloat(o.advance_paid).toFixed(2)}</td>
+                                        <td>{advanceCell(o, t)}</td>
                                         <td><span className={`badge ${PAY_BADGE[o.payment_status] || ""}`}>{t(`payment_status.${o.payment_status}`)}</span></td>
                                         <td><span className={`badge ${STATUS_BADGE[o.order_status] || ""}`}>{t(`order_status.${o.order_status}`)}</span></td>
                                         <td>
@@ -122,6 +122,17 @@ export default function AllOrders() {
 }
 
 function fmt(d) { return d ? new Date(d).toLocaleDateString("en-IN") : "—"; }
+
+// Advance cell: green once received; amber "to collect" while the advance
+// payment is still pending; muted ₹0 otherwise.
+function advanceCell(o, t) {
+    if (parseFloat(o.advance_paid) > 0)
+        return <span style={{ color: "var(--ok)", fontWeight: 600 }}>₹{parseFloat(o.advance_paid).toFixed(2)}</span>;
+    const pending = (o.payments || []).find((p) => p.payment_type === "advance" && p.status === "pending");
+    if (pending)
+        return <span style={{ color: "var(--warn)", fontWeight: 700 }} title={t("orders.advance_to_collect")}>₹{parseFloat(pending.amount).toFixed(2)} •</span>;
+    return <span style={{ color: "var(--text-muted)" }}>₹0.00</span>;
+}
 
 const STATUS_BADGE = {
     awaiting_payment: "badge-pending", pending: "badge-pending", confirmed: "badge-confirmed",
