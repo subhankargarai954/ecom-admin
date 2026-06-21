@@ -5,7 +5,9 @@ body {
         "Helvetica Neue", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
 
-    color: rgb(224, 224, 224);
-    background-color: black;
+/* Theme colors come from App.css (var(--bg) / var(--text)). */
+#root {
+    min-height: 100vh;
 }
